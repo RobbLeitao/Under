@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { ANCHO, ALTO } from '../config';
 import { reiniciarPartida } from '../systems/estado';
 import { detenerMusica } from '../systems/musica';
+import { pausarAmbiente } from '../systems/ambiente';
 import { guardarSonido } from '../systems/preferencias';
 import { sinLigaduras } from '../systems/textos';
 import { crearBoton } from '../ui/Boton';
@@ -32,6 +33,7 @@ export class Pausa extends Phaser.Scene {
   create() {
     this.pausados = this.sound.getAllPlaying();
     this.pausados.forEach((s) => s.pause());
+    pausarAmbiente(true);
 
     this.add.rectangle(0, 0, ANCHO, ALTO, 0x15131a, 0.8).setOrigin(0).setInteractive();
 
@@ -87,6 +89,7 @@ export class Pausa extends Phaser.Scene {
 
   private seguir() {
     this.pausados.forEach((s) => s.resume());
+    pausarAmbiente(false);
     this.scene.resume(this.volverA);
     this.scene.stop();
   }

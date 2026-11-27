@@ -64,7 +64,7 @@ La demo tiene **2 venues, 5 bandas y 3 misiones**. Rob habla con las bandas y lo
 
 Las misiones son de público: el jugador no toca, sino que ayuda y descubre.
 
-1. **El encuentro (fácil).** En la calle, el jugador se cruza con Nikola, de Orate, que perdió su pasamontañas camino al ensayo. Hay que encontrarlo en la avenida Independencia. Recompensa: un tema de Orate en el Phone del jugador y la invitación a escucharlos en {plataforma}.
+1. **El encuentro (fácil).** En la calle, el jugador se cruza con Nikola, de Orate, que perdió su pasamontañas camino al ensayo. Lo perdió en la misma cuadra de El Bunker, cerca del kiosco. Recompensa: un tema de Orate en el Phone del jugador y la invitación a escucharlos en {plataforma}.
 2. **La prueba de sonido en Vinoteca Perrier (media).** Para entrar a la prueba de sonido de la tarde, el jugador tiene que resolver un problema del encargado del lugar. Adentro conoce a Peke, de Abismal, y a Jota, de Exiliado. Recompensa: sus figuritas del álbum y sus temas en el Phone.
 3. **La noche del show en Teatro Vorterix (difícil).** Tocan Kainoas y Avtomata, pero antes del show algo falla: un cable, un pedal o un músico que no llega. El jugador ayuda a FAT y a El S combinando objetos y pistas de las misiones anteriores. Recompensa: la música de las 5 bandas y el álbum completo.
 
@@ -132,7 +132,6 @@ El diseño pasa por Claude Design y el desarrollo por Claude Code en la terminal
 - **Derechos de la música:** las bandas tienen que autorizar el uso de sus temas. Si están registrados en SADAIC, hay que averiguar cómo se autoriza ese uso antes de publicar.
 - **Permisos de personas y lugares:** cada músico y venue tiene que aceptar aparecer, idealmente por escrito.
 - **Sustentabilidad:** a definir. Opciones: publicidad, compras dentro del juego o venta de espacios en el juego a comercios y venues.
-- **Una o dos escenas en la misión 1:** el boceto pone el kiosco al lado de El Bunker; el guion usa dos escenas. Pendiente de decidir.
 
 ## Misión 1: "El pasamontañas perdido" (guion)
 
@@ -143,18 +142,21 @@ Una misión fácil de 5 a 8 minutos que presenta a Nikola, enseña a jugar y ter
 - Se toca el piso para caminar y un objeto o personaje para ver tres acciones: **Mirar**, **Agarrar** y **Hablar**.
 - En la computadora también se camina con el teclado: **flechas o WASD**. Izquierda y derecha (A/D) caminan por la vereda; arriba y abajo (W/S) se mueven en profundidad, sin salirse de la vereda. Si el jugador iba hacia algo que se tocó, una tecla cancela ese destino.
 - **Pausa:** botón arriba a la derecha, o Esc o P. Desde ahí se sigue, se apaga o prende el sonido, se empieza de nuevo o se vuelve al inicio.
-- Para usar o dar algo, se arrastra el objeto desde el inventario hasta su destino.
+- Para usar o dar algo, se toca el objeto en el inventario y después su destino (también se puede arrastrar).
 - Los diálogos flotan sobre la cabeza del que habla, en su color, con sonidos balbuceados. `{jugador}` es el nombre que eligió quien juega.
 
 ### Escenas
 
-1. **La esquina de El Bunker.** Una calle del centro, con la puerta de El Bunker - Estudio y Salas de Ensayo, una parada de colectivo con un banco y una salida hacia la avenida Independencia.
-2. **La avenida Independencia.** Una cuadra de Independencia en el centro de Mar del Plata: un kiosco, un banco en la vereda, un árbol y un perro que se pasea con algo negro de lana en la boca.
+La misión 1 pasa en **una sola escena** (decidido): **la esquina de El Bunker.** Una calle del centro, con la puerta de El Bunker - Estudio y Salas de Ensayo, el kiosco al lado, una parada de colectivo con un banco y un perro de la cuadra que pasea por la vereda con algo negro de lana en la boca.
+
+- **El perro pasea solo:** va y viene a paso lento por su tramo de vereda (entre la parada y el kiosco, sin acercarse a Nikola), se da vuelta en los extremos y a veces se frena unos segundos. Al tocarlo se queda quieto hasta que termina la interacción y después sigue.
+- **Animaciones:** el jugador camina con su animación (espejada hacia la izquierda) y, quieto, vuelve al sprite base. Quien habla gesticula mientras dura el balbuceo de su línea. Las hojas de cuadros están en `public/assets/sprites/anim/`.
+- **Sonido ambiente de calle:** un rumor de fondo y, cada tanto, un auto que pasa, generados con Web Audio (sin archivos). Es bajito, respeta el Sonido sí/no de la pausa y baja más mientras suena un tema en el Phone.
 
 ### Paso a paso
 
 1. **Inicio.** El jugador está en la esquina con auriculares; suena un riff de fondo. Nikola llega apurado, revisando sus bolsillos.
-2. **Hablar con Nikola.** Cuenta que perdió el pasamontañas y que pasó por el kiosco de Independencia. Se habilita la avenida.
+2. **Hablar con Nikola.** Cuenta que perdió el pasamontañas y que pasó por el kiosco de al lado.
 3. **Hablar con el kiosquero.** Dice que vio a un perro de la cuadra llevarse algo negro de lana.
 4. **Intentar agarrar el pasamontañas.** El perro no lo suelta. Mirarlo da la pista: tiene cara de hambre.
 5. **Conseguir plata.** El kiosquero no fía. Mirar debajo del banco de la parada de colectivo, en la esquina, permite agarrar unas **monedas**.
@@ -166,7 +168,7 @@ Una misión fácil de 5 a 8 minutos que presenta a Nikola, enseña a jugar y ter
 
 - **Nikola, al llegar:** "¡No, man, no puedo tocar sin mi pasamontañas!"
 - **Jugador:** "¿Tu qué?"
-- **Nikola:** "Mi pasamontañas, loco. En Orate tocamos todos con pasamontañas. Pasé por el kiosco de Independencia y después ya no lo tenía."
+- **Nikola:** "Mi pasamontañas, loco. En Orate tocamos todos con pasamontañas. Pasé por el kiosco de acá al lado y después ya no lo tenía."
 - **Kiosquero:** "Un perro de la cuadra pasó con algo negro de lana en la boca. Y no lo larga más."
 - **Mirar al perro:** "Tiene el pasamontañas y una cara de hambre tremenda."
 - **Kiosquero, sin plata:** "Acá no se fía, pibe."
@@ -186,7 +188,7 @@ Al terminar aparece un panel de **¡Misión cumplida!** con lo que se ganó, el 
 
 | Tipo | Elementos |
 | --- | --- |
-| Fondos | La esquina de El Bunker; la avenida Independencia con kiosco |
+| Fondos | La esquina de El Bunker, con el kiosco al lado |
 | Personajes animados | Jugador con skin de metalero; Nikola con y sin pasamontañas; kiosquero; perro |
 | Objetos | Monedas, galletitas, pasamontañas |
 | Interfaz | Menú de tres acciones, inventario, diálogos flotantes, Phone, álbum, campo de nombre |

@@ -13,6 +13,12 @@ export interface Personaje {
   /** Posición de los pies (centro abajo del sprite). */
   x: number;
   y: number;
+  /**
+   * Si está, el personaje pasea solo de un lado al otro entre xMin y xMax (posición de los
+   * pies), a `velocidad` unidades por segundo. Su zona tocable y su punto "acercarse" se
+   * mueven con él. Usa la animación <textura>-camina.
+   */
+  paseo?: { xMin: number; xMax: number; velocidad: number };
 }
 
 export interface Cartel {
@@ -76,7 +82,10 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
   zonaCaminable: { xMin: 8, xMax: 312, yMin: 106, yMax: 117 },
   inicioJugador: { x: 124, y: 116 },
   personajes: [
-    { clave: 'perro', textura: 'perro', x: 150, y: 116 },
+    // El perro pasea entre la parada y el kiosco. El tramo deja su cuerpo (13 unidades a cada
+    // lado) y su zona tocable lejos de Nikola (x 187 a 209), del lugar donde el jugador se para
+    // para hablarle (x 165 a 185) y del banco (x 10 a 44).
+    { clave: 'perro', textura: 'perro', x: 150, y: 116, paseo: { xMin: 62, xMax: 150, velocidad: 9 } },
     { clave: 'nikola', textura: 'nikola', x: 198, y: 116 },
   ],
   objetos: [
