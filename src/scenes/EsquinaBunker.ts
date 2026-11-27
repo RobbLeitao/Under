@@ -16,8 +16,10 @@ import { mostrarMisionCumplida } from '../ui/PanelMision';
 
 /** Velocidad del jugador, en píxeles por segundo. */
 const VELOCIDAD = 260;
-/** Cada cuánto alterna el paso de Nikola en su entrada (rebote de 4 px; no tiene hoja de caminar). */
-const MS_POR_PASO = 140;
+/** Mitad del ancho del cuerpo del jugador en el piso, en unidades (para los choques). */
+const MITAD_JUGADOR = 6;
+/** Cuántas veces se rodean obstáculos al armar una ruta. */
+const RODEOS_MAXIMOS = 4;
 /** El perro se frena cada tanto: cuánto camina entre paradas y cuánto dura cada parada. */
 const MS_PERRO_CAMINA = [3000, 8000];
 const MS_PERRO_QUIETO = [1500, 4000];
@@ -45,6 +47,20 @@ interface Paseante {
 
 const entre = ([min, max]: number[]) => min + Math.random() * (max - min);
 
+/** Un punto del piso, en píxeles (posición de los pies). */
+interface Punto {
+  x: number;
+  y: number;
+}
+
+/** Lo que ocupa un personaje en el piso, en píxeles: no se puede atravesar. */
+interface Obstaculo extends Punto {
+  /** Distancia mínima en x entre su centro y el del jugador (incluye el cuerpo del jugador). */
+  mitadAncho: number;
+  /** Cuánto ocupa hacia atrás y hacia adelante de sus pies. */
+  mitadFondo: number;
+}
+
 /**
  * La esquina de El Bunker: fondo, jugador, Nikola y el perro. Se camina tocando el piso
  * o con el teclado (flechas o WASD); al tocar a alguien o algo, el jugador se acerca
@@ -54,7 +70,11 @@ export class EsquinaBunker extends Phaser.Scene {
   private jugador!: Phaser.GameObjects.Sprite;
   /** Posición de los pies del jugador. */
   private pies = { x: 0, y: 0 };
-  private caminata?: Phaser.Tweens.Tween;
+  /** Puntos que le faltan recorrer al jugador al caminar tocando (esquiva obstáculos). */
+  private ruta: Punto[] = [];
+  /** Adónde va la ruta actual (para recalcularla si alguien se cruza). */
+  private destino: Punto | null = null;
+  private recalculada = false;
   /** El jugador está caminando (con la animación de caminar puesta). */
   private caminando = false;
   private paseantes: Paseante[] = [];
@@ -80,7 +100,9 @@ export class EsquinaBunker extends Phaser.Scene {
   /** Deja todo como nuevo: la escena se vuelve a crear al empezar de nuevo o al volver del inicio. */
   init() {
     this.pies = { x: 0, y: 0 };
-    this.caminata = undefined;
+    this.ruta = [];
+    this.destino = null;
+    this.recalculada = false;
     this.caminando = false;
     this.paseantes = [];
     this.zonas = new Map();
@@ -123,6 +145,11 @@ export class EsquinaBunker extends Phaser.Scene {
           proximaParada: ahora + entre(MS_PERRO_CAMINA),
         });
       }
+    }
+
+    // Decorados que se ordenan por profundidad con el jugador (la parada de colectivo).
+    for (const d of DATOS.decorados) {
+      this.add.image(d.x * ESCALA, d.y * ESCALA, d.textura).setOrigin(0).setDepth(d.base * ESCALA);
     }
 
     for (const datos of DATOS.objetos) {
@@ -205,26 +232,25 @@ export class EsquinaBunker extends Phaser.Scene {
     const musica = MISION_1.musicaEntrada;
     if (musica) void tocarFragmento(this, musica.tema, musica);
 
-    const nikola = this.children.getByName('nikola') as Phaser.GameObjects.Image;
+    const nikola = this.children.getByName('nikola') as Phaser.GameObjects.Sprite;
+    const datos = DATOS.personajes.find((p) => p.clave === 'nikola');
+    const base = datos ? texturaDe(MISION_1, datos.clave, datos.textura) : 'nikola';
     const destino = nikola.x;
     const piso = nikola.y;
     const pies = { x: ANCHO + nikola.width };
-    let paso = 0;
     this.ocupado = true;
     this.enDialogo = true;
 
-    const pasos = this.time.addEvent({
-      delay: MS_POR_PASO,
-      loop: true,
-      callback: () => (paso = paso ? 0 : ESCALA),
-    });
+    // Camina hacia la izquierda: la hoja de caminar, espejada, como el jugador.
+    nikola.setFlipX(true).play(`${base}-camina`);
     this.tweens.add({
       targets: pies,
       x: destino,
       duration: MS_ENTRADA_NIKOLA,
-      onUpdate: () => nikola.setPosition(Math.round(pies.x / ESCALA) * ESCALA, piso - paso),
+      onUpdate: () => nikola.setPosition(Math.round(pies.x / ESCALA) * ESCALA, piso),
       onComplete: () => {
-        pasos.remove();
+        nikola.stop();
+        nikola.setTexture(base).setFlipX(false);
         nikola.setPosition(destino, piso);
         marcar(MISION_1.marcaInicio);
         this.ocupado = false;
@@ -281,6 +307,7 @@ export class EsquinaBunker extends Phaser.Scene {
 
   update(tiempo: number, delta: number) {
     this.moverConTeclado(delta);
+    this.seguirRuta(delta);
     for (const paseante of this.paseantes) this.pasear(paseante, tiempo, delta);
   }
 
@@ -305,7 +332,13 @@ export class EsquinaBunker extends Phaser.Scene {
     } else {
       // Primero la animación y después el paso: nunca se mueve sin animar.
       p.sprite.play(`${base}-camina`, true);
-      p.x += p.sentido * paseo.velocidad * ESCALA * (delta / 1000);
+      const siguiente = p.x + p.sentido * paseo.velocidad * ESCALA * (delta / 1000);
+      // No atraviesa al jugador: si lo va a chocar, se da vuelta.
+      if (this.chocaConJugador(p, siguiente) && !this.chocaConJugador(p, p.x)) {
+        p.sentido = p.sentido === 1 ? -1 : 1;
+      } else {
+        p.x = siguiente;
+      }
       const min = paseo.xMin * ESCALA;
       const max = paseo.xMax * ESCALA;
       if (p.x <= min || p.x >= max) {
@@ -350,10 +383,10 @@ export class EsquinaBunker extends Phaser.Scene {
       return;
     }
 
-    if (!this.moviendoConTeclado || this.caminata?.isPlaying()) {
+    if (!this.moviendoConTeclado || this.ruta.length > 0) {
       this.moviendoConTeclado = true;
-      this.caminata?.stop();
-      this.caminata = undefined;
+      this.ruta = [];
+      this.destino = null;
       this.detener();
       if (this.seleccionado) {
         this.seleccionado = null;
@@ -365,9 +398,147 @@ export class EsquinaBunker extends Phaser.Scene {
 
     const z = DATOS.zonaCaminable;
     const avance = (VELOCIDAD * delta) / 1000;
-    this.pies.x = Phaser.Math.Clamp(this.pies.x + dx * avance, z.xMin * ESCALA, z.xMax * ESCALA);
-    this.pies.y = Phaser.Math.Clamp(this.pies.y + dy * avance * FACTOR_PROFUNDIDAD, z.yMin * ESCALA, z.yMax * ESCALA);
+    // Eje por eje: contra un obstáculo, el jugador se desliza por el costado en vez de atravesarlo.
+    const nx = Phaser.Math.Clamp(this.pies.x + dx * avance, z.xMin * ESCALA, z.xMax * ESCALA);
+    if (!this.bloquea(this.pies, { x: nx, y: this.pies.y })) this.pies.x = nx;
+    const ny = Phaser.Math.Clamp(this.pies.y + dy * avance * FACTOR_PROFUNDIDAD, z.yMin * ESCALA, z.yMax * ESCALA);
+    if (!this.bloquea(this.pies, { x: this.pies.x, y: ny })) this.pies.y = ny;
     this.actualizarJugador();
+  }
+
+  // ---------- Choques con Nikola y el perro ----------
+
+  /** Lo que ocupan en el piso los personajes con cuerpo, donde están ahora. */
+  private obstaculos(): Obstaculo[] {
+    const lista: Obstaculo[] = [];
+    for (const p of DATOS.personajes) {
+      if (!p.cuerpo) continue;
+      const sprite = this.children.getByName(p.clave) as Phaser.GameObjects.Sprite | null;
+      if (!sprite) continue;
+      lista.push({
+        x: sprite.x,
+        y: sprite.y,
+        mitadAncho: (p.cuerpo.mitadAncho + MITAD_JUGADOR) * ESCALA,
+        mitadFondo: p.cuerpo.mitadFondo * ESCALA,
+      });
+    }
+    return lista;
+  }
+
+  private dentro(o: Obstaculo, p: Punto) {
+    return Math.abs(p.x - o.x) < o.mitadAncho && Math.abs(p.y - o.y) < o.mitadFondo;
+  }
+
+  /**
+   * Pasar de `desde` a `hasta` choca con alguien. Si ya estaba encima (por ejemplo, el perro
+   * se le paró al lado), se lo deja salir: solo se bloquea entrar.
+   */
+  private bloquea(desde: Punto, hasta: Punto) {
+    return this.obstaculos().some((o) => this.dentro(o, hasta) && !this.dentro(o, desde));
+  }
+
+  /** El perro, en la posición x (píxeles), chocaría con el jugador. */
+  private chocaConJugador(p: Paseante, x: number) {
+    const cuerpo = p.datos.cuerpo;
+    if (!cuerpo) return false;
+    return (
+      Math.abs(x - this.pies.x) < (cuerpo.mitadAncho + MITAD_JUGADOR) * ESCALA &&
+      Math.abs(p.sprite.y - this.pies.y) < cuerpo.mitadFondo * ESCALA
+    );
+  }
+
+  /** Primer obstáculo que corta el tramo de a hasta b (se revisa cada 4 px). */
+  private obstaculoEnTramo(a: Punto, b: Punto): Obstaculo | null {
+    const pasos = Math.max(1, Math.ceil(Phaser.Math.Distance.Between(a.x, a.y, b.x, b.y) / ESCALA));
+    const lista = this.obstaculos().filter((o) => !this.dentro(o, a));
+    for (let i = 1; i <= pasos; i++) {
+      const q = { x: a.x + ((b.x - a.x) * i) / pasos, y: a.y + ((b.y - a.y) * i) / pasos };
+      const o = lista.find((ob) => this.dentro(ob, q));
+      if (o) return o;
+    }
+    return null;
+  }
+
+  /** Línea por la que se rodea un obstáculo: por atrás, o por adelante si atrás no entra. */
+  private filaDeRodeo(o: Obstaculo): number | null {
+    const z = DATOS.zonaCaminable;
+    const atras = o.y - o.mitadFondo - ESCALA;
+    const adelante = o.y + o.mitadFondo + ESCALA;
+    if (atras >= z.yMin * ESCALA) return atras;
+    if (adelante <= z.yMax * ESCALA) return adelante;
+    return null;
+  }
+
+  /** Si el destino cae adentro de alguien, se corre al lugar libre más cercano. */
+  private liberar(p: Punto): Punto {
+    const o = this.obstaculos().find((ob) => this.dentro(ob, p));
+    if (!o) return p;
+    const fila = this.filaDeRodeo(o);
+    if (fila !== null) return { x: p.x, y: fila };
+    const lado = p.x < o.x ? -1 : 1;
+    return { x: o.x + lado * (o.mitadAncho + ESCALA), y: p.y };
+  }
+
+  /** Ruta hasta el destino: en línea recta, o rodeando por atrás a quien esté en el camino. */
+  private planificar(desde: Punto, hasta: Punto): Punto[] {
+    const z = DATOS.zonaCaminable;
+    const enVereda = (q: Punto) => ({
+      x: Phaser.Math.Clamp(q.x, z.xMin * ESCALA, z.xMax * ESCALA),
+      y: Phaser.Math.Clamp(q.y, z.yMin * ESCALA, z.yMax * ESCALA),
+    });
+    const ruta: Punto[] = [];
+    let actual = desde;
+    for (let i = 0; i < RODEOS_MAXIMOS; i++) {
+      const o = this.obstaculoEnTramo(actual, hasta);
+      if (!o) break;
+      const lado = Math.sign(hasta.x - actual.x) || 1;
+      const fila = this.filaDeRodeo(o);
+      if (fila === null) {
+        // No se puede rodear: se queda antes del obstáculo.
+        ruta.push(enVereda({ x: o.x - lado * (o.mitadAncho + ESCALA), y: actual.y }));
+        return ruta;
+      }
+      const entrada = enVereda({ x: o.x - lado * (o.mitadAncho + ESCALA), y: fila });
+      const salida = enVereda({ x: o.x + lado * (o.mitadAncho + ESCALA), y: fila });
+      // Solo hace falta pasar por la salida si el destino está del otro lado.
+      ruta.push(entrada);
+      if (Math.sign(hasta.x - salida.x) === lado || Math.abs(hasta.x - o.x) < o.mitadAncho) ruta.push(salida);
+      actual = ruta[ruta.length - 1];
+    }
+    ruta.push(hasta);
+    return ruta;
+  }
+
+  /** Avanza por la ruta. Si alguien se cruza, la recalcula una vez; si sigue trabado, se queda. */
+  private seguirRuta(delta: number) {
+    if (this.ruta.length === 0 || this.moviendoConTeclado) return;
+    const objetivo = this.ruta[0];
+    const paso = (VELOCIDAD * delta) / 1000;
+    const dx = objetivo.x - this.pies.x;
+    const dy = objetivo.y - this.pies.y;
+    const distancia = Math.hypot(dx, dy);
+    const llega = distancia <= paso;
+    const siguiente = llega ? objetivo : { x: this.pies.x + (dx / distancia) * paso, y: this.pies.y + (dy / distancia) * paso };
+
+    if (this.bloquea(this.pies, siguiente)) {
+      if (!this.recalculada && this.destino) {
+        this.recalculada = true;
+        this.ruta = this.planificar(this.pies, this.liberar(this.destino));
+        return;
+      }
+      this.ruta = [];
+      this.detener();
+      return;
+    }
+
+    if (Math.abs(dx) >= 1) this.jugador.setFlipX(dx < 0);
+    this.pies = { x: siguiente.x, y: siguiente.y };
+    this.actualizarJugador();
+    if (llega) {
+      this.ruta.shift();
+      this.recalculada = false;
+      if (this.ruta.length === 0) this.detener();
+    }
   }
 
   /** Muestra un diálogo; mientras dura, el teclado no mueve al jugador. */
@@ -534,29 +705,24 @@ export class EsquinaBunker extends Phaser.Scene {
     const fx = Math.round(destinoX / ESCALA) * ESCALA;
     const fy = Math.round(destinoY / ESCALA) * ESCALA;
 
-    const distancia = Phaser.Math.Distance.Between(this.pies.x, this.pies.y, fx, fy);
+    // Si el destino cae adentro de Nikola o del perro, se corre al lugar libre más cercano.
+    const destino = this.liberar({ x: fx, y: fy });
+    const distancia = Phaser.Math.Distance.Between(this.pies.x, this.pies.y, destino.x, destino.y);
     if (distancia < ESCALA) {
-      this.caminata?.stop();
+      this.ruta = [];
+      this.destino = null;
       this.detener();
       this.llegada = Promise.resolve();
       return;
     }
 
-    if (marcar) this.marcarDestino(fx, fy);
-    if (fx !== this.pies.x) this.jugador.setFlipX(fx < this.pies.x);
-    this.caminata?.stop();
+    if (marcar) this.marcarDestino(destino.x, destino.y);
     this.alLlegar?.();
     this.llegada = new Promise((resolver) => (this.alLlegar = resolver));
+    this.destino = destino;
+    this.recalculada = false;
+    this.ruta = this.planificar(this.pies, destino);
     this.iniciarPasos();
-
-    this.caminata = this.tweens.add({
-      targets: this.pies,
-      x: fx,
-      y: fy,
-      duration: (distancia / VELOCIDAD) * 1000,
-      onUpdate: () => this.actualizarJugador(),
-      onComplete: () => this.detener(),
-    });
   }
 
   /** Pone la animación de caminar (se mantiene mientras el jugador se mueve). */

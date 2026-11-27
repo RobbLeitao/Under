@@ -19,6 +19,24 @@ export interface Personaje {
    * mueven con él. Usa la animación <textura>-camina.
    */
   paseo?: { xMin: number; xMax: number; velocidad: number };
+  /**
+   * Lo que ocupa en el piso, en unidades: la mitad de su ancho y cuánto se extiende hacia atrás
+   * y hacia adelante de sus pies. El jugador no lo puede atravesar: lo rodea por atrás.
+   */
+  cuerpo?: { mitadAncho: number; mitadFondo: number };
+}
+
+/**
+ * Algo del fondo que se ordena por profundidad con el jugador, como la parada de colectivo:
+ * si los pies del jugador están más atrás que `base`, lo tapa; si están más adelante, no.
+ */
+export interface Decorado {
+  textura: string;
+  /** Esquina de arriba a la izquierda, en unidades. */
+  x: number;
+  y: number;
+  /** Línea del piso donde se apoya (en unidades). */
+  base: number;
 }
 
 export interface Cartel {
@@ -66,6 +84,7 @@ export interface DatosEscena {
   zonaCaminable: { xMin: number; xMax: number; yMin: number; yMax: number };
   inicioJugador: { x: number; y: number };
   personajes: Personaje[];
+  decorados: Decorado[];
   objetos: ObjetoEnEscena[];
   puntos: PuntoInteres[];
   /** Dónde salen las viñetas de quien habla sin sprite en la escena (arriba de la cabeza). */
@@ -85,9 +104,19 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
     // El perro pasea entre la parada y el kiosco. El tramo deja su cuerpo (13 unidades a cada
     // lado) y su zona tocable lejos de Nikola (x 187 a 209), del lugar donde el jugador se para
     // para hablarle (x 165 a 185) y del banco (x 10 a 44).
-    { clave: 'perro', textura: 'perro', x: 150, y: 116, paseo: { xMin: 62, xMax: 150, velocidad: 9 } },
-    { clave: 'nikola', textura: 'nikola', x: 198, y: 116 },
+    {
+      clave: 'perro',
+      textura: 'perro',
+      x: 150,
+      y: 116,
+      paseo: { xMin: 62, xMax: 150, velocidad: 9 },
+      cuerpo: { mitadAncho: 11, mitadFondo: 3 },
+    },
+    { clave: 'nikola', textura: 'nikola', x: 198, y: 116, cuerpo: { mitadAncho: 7, mitadFondo: 3 } },
   ],
+  // La parada de colectivo (techo, postes, vidrio, banco y cartel), separada del fondo con
+  // scripts/separar-parada.py. Se apoya en la vereda en y 110.
+  decorados: [{ textura: 'parada-colectivo', x: 4, y: 60, base: 110 }],
   objetos: [
     // Paso 5: las monedas, en el piso abajo del banco de la parada.
     { textura: 'monedas-piso', x: 22, y: 107, si: { sin: ['agarro-monedas'] }, brilla: true },

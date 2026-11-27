@@ -32,6 +32,7 @@ src/
 public/
   assets/            sprites, fondos y audio que carga Phaser
 assets/              bocetos y fuentes de arte (no se sirven)
+scripts/             herramientas de arte en Python con Pillow (generar hojas de caminar, separar decorados del fondo)
 docs/                diseño y estilo
 ```
 
@@ -43,6 +44,9 @@ docs/                diseño y estilo
 - **Variables de texto:** `{jugador}` es el nombre que eligió quien juega; `{plataforma}` es el link que manda cada banda (Spotify, YouTube, Bandcamp u otra). Nunca hardcodear una plataforma.
 - **Celular primero en la interacción:** todo se juega con toques. Mirar, Agarrar y Hablar son tres botones grandes (mínimo 44 px de alto); para usar o dar un objeto se toca en el inventario y después se toca el destino (también se puede arrastrar).
 - **Teclado, además de los toques:** flechas y WASD mueven al jugador. Izquierda/derecha (A/D) caminan por la vereda; arriba/abajo (W/S) se mueven en profundidad dentro de la franja de la vereda, sin salirse. Si el jugador iba hacia un punto tocado, una tecla cancela ese destino (y la acción que esperaba). Las teclas no se capturan y existen solo en las escenas de juego, para no interferir con el campo del nombre en la pantalla de inicio. Esc o P abren la pausa.
+- **Nadie se atraviesa:** los personajes con `cuerpo` en `src/data/escenas.ts` (Nikola, el perro) son obstáculos. El jugador los rodea por atrás al caminar tocando y se frena contra ellos con teclado.
+- **Profundidad:** todo se ordena por la línea de los pies. Lo del fondo que tiene que tapar al jugador cuando pasa por atrás (como la parada de colectivo) va como `decorado`, separado del SVG del fondo.
+- **Mismo movimiento para todos:** cada personaje que camina tiene su hoja `<textura>-camina` con el mismo esquema de 4 cuadros que el jugador (`scripts/generar-caminar.py` la arma a partir del cuadro quieto).
 - **Pausa:** botón arriba a la derecha de cada escena de juego (y Esc o P). Menú con Seguir, Sonido sí/no (se guarda en el dispositivo), Empezar de nuevo (pide confirmación y borra el avance, no el nombre) e Ir al inicio.
 - **Inventario vs. Phone:** los objetos físicos (monedas, galletitas, pasamontañas) van al inventario de abajo; lo digital (música, álbum de figuritas) vive en el Phone.
 
