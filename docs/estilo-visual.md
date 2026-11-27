@@ -53,15 +53,17 @@ Archivos en `assets/sprites/` y `public/assets/sprites/` (con su tamaño en `src
 | `jugador-metalero.svg` | 20x49 |
 | `nikola.svg`, `nikola-pasamontanas.svg` | 22x51 |
 | `perro.svg`, `perro-sin-pasamontanas.svg` | 26x15 |
+| `kiosquero.svg` | 18x23 |
 
 - **Jugador, skin metalero:** pelo largo castaño con raya al medio que cae sobre los hombros, chaleco de jean con parches, remera negra con estampa, jean negro, zapatillas blancas.
 - **Nikola (Orate):** pelo oscuro peinado para atrás, con entradas y canas a los costados; lentes de aviador negros que ocupan casi todo el ancho de la cara; bigote negro espeso, la zona de la boca oscura y la barba entrecana a los costados; remera negra y reloj negro. Mira hacia la izquierda.
 - **Nikola con pasamontañas:** pasamontañas negro con la forma de su cabeza, **sin lentes**: por la abertura se ven la piel y los ojos, y abajo el hueco de la boca.
 - **Perro:** marrón claro, con el pasamontañas negro en la boca (y la versión sin él).
+- **Kiosquero:** una silueta violácea (`#24162F`, con un borde de luz `#4B3563`), de la cintura para arriba, recortada contra la luz del fondo del kiosco. Se para detrás del mostrador (pies en y 84) y gesticula al hablar (`kiosquero-habla`). No tiene rasgos a propósito: es un personaje genérico.
 
 ## Escena: esquina de El Bunker
 
-Basada en la cuadra real, con comercios genéricos, al anochecer. De izquierda a derecha: casa de piedra estilo Mar del Plata con postigos y tejas, con la parada de colectivo y el banco adelante; edificio naranja con balcones, persiana metálica con grafiti y afiches; un plátano; el kiosco iluminado (cartel azul, toldo a rayas, vidriera con golosinas); la puerta de El Bunker con el cartel del logo y una lamparita roja; edificio de vidrio con ventanas encendidas; edificio blanco con la farola. Cables cruzando la calle, vereda de baldosas, cordón amarillo y la calle con un charco que refleja el kiosco.
+Basada en la cuadra real, con comercios genéricos, al anochecer. De izquierda a derecha: casa de piedra estilo Mar del Plata con postigos y tejas, con la parada de colectivo y el banco adelante; edificio naranja con balcones, persiana metálica con grafiti y afiches; un plátano; el kiosco iluminado (cartel azul, toldo a rayas y una ventanita de atención con tubo de luz, tiras de snacks colgando, estantes, frascos de golosinas y un mostrador con vitrina; el kiosquero se ve detrás); la puerta de El Bunker con el cartel del logo y una lamparita roja; edificio de vidrio con ventanas encendidas; edificio blanco con la farola. En el poste de la farola, el cartel de calle "AV. INDEPENDENCIA": placa azul `#1F3A7A` con borde blanco y letras de píxeles (no tipografía), para que sea 8 bits de verdad. Cables cruzando la calle, vereda de baldosas, cordón amarillo y la calle con un charco que refleja el kiosco.
 
 - **Fondo del juego:** `public/assets/escenas/esquina-el-bunker.svg`, sin personajes, monedas ni textos (los dibuja el juego).
 - **Boceto completo, con personajes:** `assets/escenas/esquina-el-bunker-boceto.svg`.
