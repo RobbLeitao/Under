@@ -1,8 +1,13 @@
 import Phaser from 'phaser';
-import { ALTO_ESCENA, ESCALA } from '../config';
-import { ESQUINA_EL_BUNKER as DATOS, type PuntoInteres } from '../data/escenas';
-import { RESPUESTAS_POR_DEFECTO, type Verbo } from '../data/acciones';
+import { ANCHO, ALTO_ESCENA, ESCALA } from '../config';
+import { ESQUINA_EL_BUNKER as DATOS, type PuntoInteres, type Respuesta } from '../data/escenas';
+import { RESPUESTAS_POR_DEFECTO, RESPUESTA_USAR_POR_DEFECTO } from '../data/acciones';
 import { DIALOGOS, type ClaveHablante, type Dialogo } from '../data/dialogos';
+import { OBJETOS } from '../data/objetos';
+import { MISION_1 } from '../data/misiones/mision1';
+import type { Accion } from '../data/misiones/tipos';
+import { marcar, tieneMarca } from '../systems/estado';
+import { aplicarEfectos, buscarRegla, texturaDe } from '../systems/misiones';
 import { BarraAcciones } from '../ui/BarraAcciones';
 import { reproducirDialogo } from '../ui/Vineta';
 
@@ -10,6 +15,8 @@ import { reproducirDialogo } from '../ui/Vineta';
 const VELOCIDAD = 260;
 /** Cada cuánto alterna el paso (rebote de 4 px) mientras camina. */
 const MS_POR_PASO = 140;
+/** Duración de la entrada de Nikola al empezar la misión. */
+const MS_ENTRADA_NIKOLA = 2600;
 
 /**
  * La esquina de El Bunker: fondo, jugador, Nikola y el perro. Se camina tocando el piso;
@@ -27,7 +34,8 @@ export class EsquinaBunker extends Phaser.Scene {
   /** Se cumple cuando el jugador termina de caminar (o cuando lo interrumpen). */
   private llegada: Promise<void> = Promise.resolve();
   private alLlegar?: () => void;
-  private hablando = false;
+  /** Mientras hay un diálogo o una animación, las acciones nuevas se ignoran. */
+  private ocupado = false;
 
   constructor() {
     super('EsquinaBunker');
@@ -41,7 +49,6 @@ export class EsquinaBunker extends Phaser.Scene {
         .text(c.x * ESCALA, c.y * ESCALA, c.texto, {
           fontFamily: '"Pixelify Sans"',
           fontSize: `${Math.round(c.tamano * ESCALA)}px`,
-          fontStyle: 'bold',
           color: c.color,
         })
         .setOrigin(0.5);
@@ -49,7 +56,7 @@ export class EsquinaBunker extends Phaser.Scene {
 
     for (const p of DATOS.personajes) {
       this.add
-        .image(p.x * ESCALA, p.y * ESCALA, p.textura)
+        .image(p.x * ESCALA, p.y * ESCALA, texturaDe(MISION_1, p.clave, p.textura))
         .setOrigin(0.5, 1)
         .setDepth(p.y * ESCALA)
         .setName(p.clave);
@@ -61,7 +68,8 @@ export class EsquinaBunker extends Phaser.Scene {
 
     this.barra = new BarraAcciones(this, {
       alElegirVerbo: (verbo) => this.actuar(verbo),
-      alTocarPhone: () => this.barra.mostrarMensaje('El Phone todavía no prende.'),
+      alTocarPhone: () => this.abrirPhone(),
+      alSoltarObjeto: (objeto, x, y) => this.soltarObjeto(objeto, x, y),
     });
 
     for (const punto of DATOS.puntos) {
@@ -70,22 +78,81 @@ export class EsquinaBunker extends Phaser.Scene {
         .zone(z.x * ESCALA, z.y * ESCALA, z.ancho * ESCALA, z.alto * ESCALA)
         .setOrigin(0)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => this.seleccionar(punto));
+        .on('pointerdown', () => !this.ocupado && this.seleccionar(punto));
     }
 
     this.input.on('pointerdown', (puntero: Phaser.Input.Pointer, tocados: Phaser.GameObjects.GameObject[]) => {
-      if (puntero.y >= ALTO_ESCENA || tocados.length > 0) return;
+      if (puntero.y >= ALTO_ESCENA || tocados.length > 0 || this.ocupado) return;
       this.seleccionado = null;
       this.barra.setObjetivo(null);
       this.caminarHacia(puntero.x, puntero.y);
     });
 
-    // Solo en desarrollo: ?dialogo=clave muestra ese diálogo al entrar.
-    const atajo = import.meta.env.DEV ? new URLSearchParams(location.search).get('dialogo') : null;
-    if (atajo && atajo in DIALOGOS) {
+    // Solo en desarrollo: ?dialogo=clave muestra ese diálogo al entrar y ?phone abre el Phone.
+    const parametros = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
+    const atajo = parametros?.get('dialogo');
+    if (parametros?.has('phone')) {
+      this.time.delayedCall(0, () => this.abrirPhone());
+    } else if (atajo && atajo in DIALOGOS) {
       const d: Dialogo = DIALOGOS[atajo as keyof typeof DIALOGOS];
       void reproducirDialogo(this, d.lineas, (quien) => this.ancla(quien), d.banda);
+    } else if (!tieneMarca(MISION_1.marcaInicio)) {
+      this.entradaNikola();
     }
+  }
+
+  /**
+   * Paso 1 de la misión: Nikola llega apurado desde la derecha.
+   * PENDIENTE: acá suena un riff de fondo cuando Orate pase el archivo
+   * (public/assets/audio/); mientras tanto, silencio.
+   */
+  private entradaNikola() {
+    const nikola = this.children.getByName('nikola') as Phaser.GameObjects.Image;
+    const destino = nikola.x;
+    const piso = nikola.y;
+    const pies = { x: ANCHO + nikola.width };
+    let paso = 0;
+    this.ocupado = true;
+
+    const pasos = this.time.addEvent({
+      delay: MS_POR_PASO,
+      loop: true,
+      callback: () => (paso = paso ? 0 : ESCALA),
+    });
+    this.tweens.add({
+      targets: pies,
+      x: destino,
+      duration: MS_ENTRADA_NIKOLA,
+      onUpdate: () => nikola.setPosition(Math.round(pies.x / ESCALA) * ESCALA, piso - paso),
+      onComplete: () => {
+        pasos.remove();
+        nikola.setPosition(destino, piso);
+        marcar(MISION_1.marcaInicio);
+        this.ocupado = false;
+        this.barra.mostrarMensaje('Nikola parece preocupado. Tocalo y hablale.', 5000);
+      },
+    });
+    nikola.setPosition(pies.x, piso);
+  }
+
+  /** Abre el Phone encima de la escena, que queda en pausa hasta que se cierre. */
+  private abrirPhone() {
+    if (this.ocupado) return;
+    this.scene.launch('Phone', { volverA: this.scene.key });
+    this.scene.pause();
+  }
+
+  /** Soltar un objeto del inventario: si cayó sobre algo, el jugador va y lo usa ahí. */
+  private soltarObjeto(objeto: string, x: number, y: number) {
+    if (this.ocupado) return;
+    const ux = x / ESCALA;
+    const uy = y / ESCALA;
+    const punto = DATOS.puntos.find(
+      ({ zona: z }) => ux >= z.x && ux <= z.x + z.ancho && uy >= z.y && uy <= z.y + z.alto,
+    );
+    if (!punto) return;
+    this.seleccionar(punto);
+    void this.actuar({ usar: objeto });
   }
 
   private seleccionar(punto: PuntoInteres) {
@@ -94,23 +161,48 @@ export class EsquinaBunker extends Phaser.Scene {
     this.caminarHacia(punto.acercarse.x * ESCALA, punto.acercarse.y * ESCALA, false);
   }
 
-  /** Espera a que el jugador llegue y muestra la respuesta en viñetas. */
-  private async actuar(verbo: Verbo) {
+  /**
+   * Espera a que el jugador llegue, aplica la regla de la misión que corresponda
+   * y muestra la respuesta en viñetas.
+   */
+  private async actuar(accion: Accion) {
     const punto = this.seleccionado;
-    if (!punto || this.hablando) return;
-    this.hablando = true;
+    if (!punto || this.ocupado) return;
+    this.ocupado = true;
     await this.llegada;
     // Si mientras caminaba tocó otra cosa, la acción ya no corresponde.
     if (this.seleccionado !== punto) {
-      this.hablando = false;
+      this.ocupado = false;
       return;
     }
 
-    const respuesta = punto.respuestas[verbo] ?? RESPUESTAS_POR_DEFECTO[verbo];
+    const regla = buscarRegla(MISION_1, punto.clave, accion);
+    const respuesta: Respuesta =
+      regla?.respuesta ??
+      (typeof accion === 'string' ? (punto.respuestas[accion] ?? RESPUESTAS_POR_DEFECTO[accion]) : RESPUESTA_USAR_POR_DEFECTO);
+
+    // Los efectos van antes del diálogo: Nikola ya tiene puesto el pasamontañas cuando agradece.
+    const terminaMision = regla?.efectos?.some((e) => 'marcar' in e && e.marcar === MISION_1.marcaFin) ?? false;
+    const agregados = aplicarEfectos(regla?.efectos);
+    this.actualizarApariencias();
+
     const dialogo: Dialogo =
       typeof respuesta === 'string' ? { lineas: [{ quien: 'jugador', texto: respuesta }] } : DIALOGOS[respuesta.dialogo];
     await reproducirDialogo(this, dialogo.lineas, (quien) => this.ancla(quien), dialogo.banda);
-    this.hablando = false;
+
+    if (terminaMision) this.barra.mostrarMensaje(MISION_1.mensajeFinal, 8000);
+    else if (agregados.length) {
+      const nombres = agregados.map((o) => OBJETOS[o]?.nombre ?? o).join(' y ');
+      this.barra.mostrarMensaje(`Conseguiste ${nombres}.`);
+    }
+    this.ocupado = false;
+  }
+
+  private actualizarApariencias() {
+    for (const p of DATOS.personajes) {
+      const sprite = this.children.getByName(p.clave) as Phaser.GameObjects.Image | null;
+      sprite?.setTexture(texturaDe(MISION_1, p.clave, p.textura));
+    }
   }
 
   /** Punto arriba de la cabeza de quien habla, en píxeles. */

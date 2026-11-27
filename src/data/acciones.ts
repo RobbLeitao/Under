@@ -13,3 +13,6 @@ export const RESPUESTAS_POR_DEFECTO: Record<Verbo, string> = {
   agarrar: 'No me lo puedo llevar.',
   hablar: 'No contesta.',
 };
+
+/** Cuando se suelta un objeto sobre algo que no lo necesita. */
+export const RESPUESTA_USAR_POR_DEFECTO = 'Eso no sirve acá.';

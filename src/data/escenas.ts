@@ -65,13 +65,13 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
     { clave: 'perro', textura: 'perro', x: 169.5, y: 116 },
     { clave: 'nikola', textura: 'nikola', x: 198, y: 116 },
   ],
-  // Textos provisorios: la misión 1 (tarea 6) los cambia según el estado.
+  // Respuestas fijas. Las que dependen del avance están en data/misiones/.
   puntos: [
     {
       clave: 'nikola',
       nombre: 'Nikola',
       zona: { x: 190, y: 84, ancho: 16, alto: 34 },
-      acercarse: { x: 186, y: 116 },
+      acercarse: { x: 183, y: 116 },
       respuestas: {
         mirar: 'Es Nikola, de Orate. Se revisa los bolsillos como loco.',
         agarrar: 'Mejor no.',
@@ -84,7 +84,7 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       zona: { x: 158, y: 102, ancho: 22, alto: 16 },
       acercarse: { x: 154, y: 116 },
       respuestas: {
-        mirar: { dialogo: 'mirar-perro' },
+        mirar: 'Un perro de la cuadra, con algo negro de lana en la boca.',
         agarrar: 'No lo suelta ni loco.',
         hablar: 'Mueve la cola, pero no larga nada.',
       },
@@ -106,7 +106,6 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       acercarse: { x: 178, y: 108 },
       respuestas: {
         mirar: 'Golosinas, galletitas y un kiosquero con cara de pocos amigos.',
-        hablar: { dialogo: 'kiosquero-perro' },
       },
     },
     {

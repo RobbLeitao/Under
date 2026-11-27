@@ -1,7 +1,9 @@
 import Phaser from 'phaser';
 import { ANCHO, ALTO_ESCENA, ALTO_BARRA } from '../config';
 import { VERBOS, type Verbo } from '../data/acciones';
+import { OBJETOS } from '../data/objetos';
 import { inventario, LUGARES_INVENTARIO } from '../systems/inventario';
+import { sinLigaduras } from '../systems/textos';
 
 const COLOR = {
   fondo: 0x15131a,
@@ -27,6 +29,19 @@ const ANCHO_PHONE = 172;
 export interface OpcionesBarra {
   alElegirVerbo: (verbo: Verbo) => void;
   alTocarPhone: () => void;
+  /** Se soltó un objeto del inventario sobre la escena, en (x, y). */
+  alSoltarObjeto: (objeto: string, x: number, y: number) => void;
+}
+
+/** Distancia que hay que mover el dedo para que un toque sea un arrastre. */
+const UMBRAL_ARRASTRE = 8;
+
+function nombreDe(objeto: string) {
+  return OBJETOS[objeto]?.nombre ?? objeto;
+}
+
+function conMayuscula(texto: string) {
+  return texto.charAt(0).toUpperCase() + texto.slice(1);
 }
 
 interface Boton {
@@ -80,6 +95,7 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
     this.crearBoton(ANCHO - MARGEN - ANCHO_PHONE, ANCHO_PHONE, 'Phone', () => this.opciones.alTocarPhone(), true);
 
     escena.add.existing(this);
+    escena.input.dragDistanceThreshold = UMBRAL_ARRASTRE;
     inventario.on('cambio', this.alCambiarInventario);
     this.once(Phaser.GameObjects.Events.DESTROY, () => inventario.off('cambio', this.alCambiarInventario));
 
@@ -95,16 +111,20 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
       boton.texto.setColor(nombre ? TEXTO.claro : TEXTO.apagado);
     }
     if (nombre) {
-      this.linea.setText(nombre).setColor(TEXTO.acento);
+      this.escribirLinea(nombre).setColor(TEXTO.acento);
     } else {
-      this.linea.setText('Tocá algo o a alguien, o caminá por la vereda.').setColor(TEXTO.apagado);
+      this.escribirLinea('Tocá algo o a alguien, o caminá por la vereda.').setColor(TEXTO.apagado);
     }
+  }
+
+  private escribirLinea(texto: string) {
+    return this.linea.setText(sinLigaduras(texto));
   }
 
   /** Muestra un mensaje en la línea de arriba y después vuelve al objetivo actual. */
   mostrarMensaje(texto: string, ms = 3500) {
     this.temporizador?.remove();
-    this.linea.setText(texto).setColor(TEXTO.claro);
+    this.escribirLinea(texto).setColor(TEXTO.claro);
     this.temporizador = this.scene.time.delayedCall(ms, () => this.setObjetivo(this.objetivo));
   }
 
@@ -160,24 +180,47 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
     this.lugares.forEach((lugar, i) => {
       lugar.list.slice(1).forEach((hijo) => hijo.destroy());
       const clave = objetos[i];
-      if (!clave) return;
-      const textura = `objeto-${clave}`;
-      if (this.scene.textures.exists(textura)) {
-        lugar.add(this.scene.add.image(LADO_LUGAR / 2, LADO_LUGAR / 2, textura));
-      } else {
-        // Sin dibujo todavía: se muestra el nombre.
-        lugar.add(
-          this.scene.add
-            .text(LADO_LUGAR / 2, LADO_LUGAR / 2, clave, {
-              fontFamily: FUENTE,
-              fontSize: '16px',
-              color: TEXTO.claro,
-              align: 'center',
-              wordWrap: { width: LADO_LUGAR - 8 },
-            })
-            .setOrigin(0.5),
-        );
+      if (clave) lugar.add(this.crearObjeto(clave));
+    });
+  }
+
+  /** Ícono de un objeto del inventario: tocarlo dice qué es; arrastrarlo lo usa en la escena. */
+  private crearObjeto(clave: string) {
+    const escena = this.scene;
+    const textura = `objeto-${clave}`;
+    const centro = LADO_LUGAR / 2;
+    const icono: Phaser.GameObjects.Image | Phaser.GameObjects.Text = escena.textures.exists(textura)
+      ? escena.add.image(centro, centro, textura)
+      : escena.add
+          .text(centro, centro, clave, { fontFamily: FUENTE, fontSize: '16px', color: TEXTO.claro })
+          .setOrigin(0.5);
+
+    icono.setInteractive({ draggable: true, useHandCursor: true });
+    let flotante: Phaser.GameObjects.Image | null = null;
+    let arrastrando = false;
+
+    icono.on('pointerup', () => {
+      if (!arrastrando) this.mostrarMensaje(conMayuscula(nombreDe(clave)) + '.', 2500);
+    });
+    icono.on('dragstart', (puntero: Phaser.Input.Pointer) => {
+      arrastrando = true;
+      this.temporizador?.remove();
+      this.escribirLinea(`Usar ${nombreDe(clave)} con…`).setColor(TEXTO.acento);
+      if (icono instanceof Phaser.GameObjects.Image) {
+        icono.setAlpha(0.3);
+        flotante = escena.add.image(puntero.x, puntero.y, textura).setDepth(30000);
       }
     });
+    icono.on('drag', (puntero: Phaser.Input.Pointer) => flotante?.setPosition(puntero.x, puntero.y));
+    icono.on('dragend', (puntero: Phaser.Input.Pointer) => {
+      flotante?.destroy();
+      flotante = null;
+      icono.setAlpha(1);
+      // Se espera al final del toque para que 'pointerup' no lo tome como un toque simple.
+      escena.time.delayedCall(0, () => (arrastrando = false));
+      this.setObjetivo(this.objetivo);
+      if (puntero.y < ALTO_ESCENA) this.opciones.alSoltarObjeto(clave, puntero.x, puntero.y);
+    });
+    return icono;
   }
 }

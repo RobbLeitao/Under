@@ -50,7 +50,10 @@ export const DIALOGOS = {
     lineas: [{ quien: 'jugador', texto: 'Tiene el pasamontañas y una cara de hambre tremenda.' }],
   },
   'kiosquero-sin-plata': {
-    lineas: [{ quien: 'kiosquero', texto: 'Acá no se fía, pibe.' }],
+    lineas: [
+      { quien: 'jugador', texto: '¿Me fiás unas galletitas?' },
+      { quien: 'kiosquero', texto: 'Acá no se fía, pibe.' },
+    ],
   },
   'nikola-recibe-pasamontanas': {
     banda: 'orate',
@@ -61,6 +64,26 @@ export const DIALOGOS = {
           '¡Ahí está! Un poco babeado, pero sirve. Gracias man.. Sos un crack, cracken, TITAN! Che, {jugador}, tomá, escuchanos en {plataforma}.',
       },
     ],
+  },
+
+  // Provisorios: no están en el guion; revisar con Nikola.
+  'nikola-recordatorio': {
+    lineas: [{ quien: 'nikola', texto: 'El pasamontañas, man. Pasé por el kiosco y después ya no lo tenía.' }],
+  },
+  'nikola-listo': {
+    lineas: [{ quien: 'nikola', texto: '¡Ya estoy listo para el ensayo! Gracias, {jugador}.' }],
+  },
+  'kiosquero-saludo': {
+    lineas: [{ quien: 'kiosquero', texto: 'Buenas. ¿Qué vas a llevar?' }],
+  },
+  'kiosquero-galletitas': {
+    lineas: [
+      { quien: 'jugador', texto: 'Unas galletitas, por favor.' },
+      { quien: 'kiosquero', texto: 'Ahí tenés. Las más baratas que hay.' },
+    ],
+  },
+  'perro-suelta': {
+    lineas: [{ quien: 'jugador', texto: '¡Lo soltó! Un poco babeado, pero entero.' }],
   },
 } satisfies Record<string, Dialogo>;
 

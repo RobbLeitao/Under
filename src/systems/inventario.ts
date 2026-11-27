@@ -25,6 +25,12 @@ export class Inventario extends Phaser.Events.EventEmitter {
     return true;
   }
 
+  /** Reemplaza todo el contenido (al cargar una partida guardada). */
+  cargar(objetos: string[]): void {
+    this.objetos = [...new Set(objetos)].slice(0, LUGARES_INVENTARIO);
+    this.emit('cambio', this.objetos);
+  }
+
   quitar(clave: string): void {
     const antes = this.objetos.length;
     this.objetos = this.objetos.filter((o) => o !== clave);

@@ -37,7 +37,6 @@ class Vineta extends Phaser.GameObjects.Container {
     const nombre = escena.add.text(RELLENO, RELLENO, completarTexto(hablante.nombre), {
       fontFamily: FUENTE,
       fontSize: '22px',
-      fontStyle: 'bold',
       color: '#A7362F',
     });
     this.texto = escena.add.text(RELLENO, RELLENO + 32, this.completo, {
@@ -48,10 +47,12 @@ class Vineta extends Phaser.GameObjects.Container {
       wordWrap: { width: ANCHO_MAXIMO - RELLENO * 2, useAdvancedWrap: true },
     });
 
-    // Se mide con el texto entero para que la caja no cambie de tamaño mientras se escribe.
+    // Se mide con el texto entero para que la caja no cambie de tamaño mientras se escribe,
+    // y los renglones se cortan una sola vez para que no salten ni se salgan de la caja.
     const ancho = Math.ceil(Math.max(nombre.width, this.texto.width) + RELLENO * 2);
     const alto = Math.ceil(this.texto.y + this.texto.height + RELLENO);
-    this.texto.setText('');
+    this.completo = this.texto.getWrappedText(this.completo).join('\n');
+    this.texto.setWordWrapWidth(null).setText('');
 
     // Arriba del que habla; si no entra, abajo. Siempre dentro de la escena.
     const arriba = ancla.y - COLITA - alto >= MARGEN_PANTALLA;
