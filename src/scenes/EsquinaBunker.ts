@@ -2,7 +2,9 @@ import Phaser from 'phaser';
 import { ALTO_ESCENA, ESCALA } from '../config';
 import { ESQUINA_EL_BUNKER as DATOS, type PuntoInteres } from '../data/escenas';
 import { RESPUESTAS_POR_DEFECTO, type Verbo } from '../data/acciones';
+import { DIALOGOS, type ClaveHablante, type Dialogo } from '../data/dialogos';
 import { BarraAcciones } from '../ui/BarraAcciones';
+import { reproducirDialogo } from '../ui/Vineta';
 
 /** Velocidad del jugador, en píxeles por segundo. */
 const VELOCIDAD = 260;
@@ -22,6 +24,10 @@ export class EsquinaBunker extends Phaser.Scene {
   private rebote = 0;
   private barra!: BarraAcciones;
   private seleccionado: PuntoInteres | null = null;
+  /** Se cumple cuando el jugador termina de caminar (o cuando lo interrumpen). */
+  private llegada: Promise<void> = Promise.resolve();
+  private alLlegar?: () => void;
+  private hablando = false;
 
   constructor() {
     super('EsquinaBunker');
@@ -73,6 +79,13 @@ export class EsquinaBunker extends Phaser.Scene {
       this.barra.setObjetivo(null);
       this.caminarHacia(puntero.x, puntero.y);
     });
+
+    // Solo en desarrollo: ?dialogo=clave muestra ese diálogo al entrar.
+    const atajo = import.meta.env.DEV ? new URLSearchParams(location.search).get('dialogo') : null;
+    if (atajo && atajo in DIALOGOS) {
+      const d: Dialogo = DIALOGOS[atajo as keyof typeof DIALOGOS];
+      void reproducirDialogo(this, d.lineas, (quien) => this.ancla(quien), d.banda);
+    }
   }
 
   private seleccionar(punto: PuntoInteres) {
@@ -81,10 +94,32 @@ export class EsquinaBunker extends Phaser.Scene {
     this.caminarHacia(punto.acercarse.x * ESCALA, punto.acercarse.y * ESCALA, false);
   }
 
-  /** Respuesta provisoria en la barra; con la tarea 5 pasa a las viñetas de diálogo. */
-  private actuar(verbo: Verbo) {
-    if (!this.seleccionado) return;
-    this.barra.mostrarMensaje(this.seleccionado.respuestas[verbo] ?? RESPUESTAS_POR_DEFECTO[verbo]);
+  /** Espera a que el jugador llegue y muestra la respuesta en viñetas. */
+  private async actuar(verbo: Verbo) {
+    const punto = this.seleccionado;
+    if (!punto || this.hablando) return;
+    this.hablando = true;
+    await this.llegada;
+    // Si mientras caminaba tocó otra cosa, la acción ya no corresponde.
+    if (this.seleccionado !== punto) {
+      this.hablando = false;
+      return;
+    }
+
+    const respuesta = punto.respuestas[verbo] ?? RESPUESTAS_POR_DEFECTO[verbo];
+    const dialogo: Dialogo =
+      typeof respuesta === 'string' ? { lineas: [{ quien: 'jugador', texto: respuesta }] } : DIALOGOS[respuesta.dialogo];
+    await reproducirDialogo(this, dialogo.lineas, (quien) => this.ancla(quien), dialogo.banda);
+    this.hablando = false;
+  }
+
+  /** Punto arriba de la cabeza de quien habla, en píxeles. */
+  private ancla(quien: ClaveHablante) {
+    if (quien === 'jugador') return { x: this.jugador.x, y: this.jugador.y - this.jugador.height - 8 };
+    const sprite = this.children.getByName(quien) as Phaser.GameObjects.Image | null;
+    if (sprite) return { x: sprite.x, y: sprite.y - sprite.height - 8 };
+    const fija = DATOS.anclas[quien];
+    return fija ? { x: fija.x * ESCALA, y: fija.y * ESCALA } : { x: this.jugador.x, y: 200 };
   }
 
   private caminarHacia(x: number, y: number, marcar = true) {
@@ -96,10 +131,17 @@ export class EsquinaBunker extends Phaser.Scene {
     const fy = Math.round(destinoY / ESCALA) * ESCALA;
 
     const distancia = Phaser.Math.Distance.Between(this.pies.x, this.pies.y, fx, fy);
-    if (distancia < ESCALA) return;
+    if (distancia < ESCALA) {
+      this.caminata?.stop();
+      this.detener();
+      this.llegada = Promise.resolve();
+      return;
+    }
 
     if (marcar) this.marcarDestino(fx, fy);
     this.caminata?.stop();
+    this.alLlegar?.();
+    this.llegada = new Promise((resolver) => (this.alLlegar = resolver));
     this.pasos ??= this.time.addEvent({
       delay: MS_POR_PASO,
       loop: true,
@@ -124,6 +166,8 @@ export class EsquinaBunker extends Phaser.Scene {
     this.pasos = undefined;
     this.rebote = 0;
     this.actualizarJugador();
+    this.alLlegar?.();
+    this.alLlegar = undefined;
   }
 
   private actualizarJugador() {

@@ -1,4 +1,5 @@
 import type { Verbo } from './acciones';
+import type { ClaveDialogo, ClaveHablante } from './dialogos';
 
 /**
  * Datos de cada escena. Todas las medidas van en unidades de la grilla de 320x140
@@ -23,6 +24,9 @@ export interface Cartel {
   color: string;
 }
 
+/** Una frase que dice el jugador, o un diálogo de data/dialogos.ts. */
+export type Respuesta = string | { dialogo: ClaveDialogo };
+
 /** Algo que se puede tocar en la escena: un personaje o un objeto del fondo. */
 export interface PuntoInteres {
   clave: string;
@@ -33,7 +37,7 @@ export interface PuntoInteres {
   /** Adónde camina el jugador para interactuar (pies). */
   acercarse: { x: number; y: number };
   /** Respuesta a cada acción; si falta, se usa la respuesta por defecto. */
-  respuestas: Partial<Record<Verbo, string>>;
+  respuestas: Partial<Record<Verbo, Respuesta>>;
 }
 
 export interface DatosEscena {
@@ -44,6 +48,8 @@ export interface DatosEscena {
   inicioJugador: { x: number; y: number };
   personajes: Personaje[];
   puntos: PuntoInteres[];
+  /** Dónde salen las viñetas de quien habla sin sprite en la escena (arriba de la cabeza). */
+  anclas: Partial<Record<ClaveHablante, { x: number; y: number }>>;
 }
 
 export const ESQUINA_EL_BUNKER: DatosEscena = {
@@ -69,7 +75,7 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       respuestas: {
         mirar: 'Es Nikola, de Orate. Se revisa los bolsillos como loco.',
         agarrar: 'Mejor no.',
-        hablar: '¡No, man, no puedo tocar sin mi pasamontañas!',
+        hablar: { dialogo: 'nikola-llegada' },
       },
     },
     {
@@ -78,7 +84,7 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       zona: { x: 158, y: 102, ancho: 22, alto: 16 },
       acercarse: { x: 154, y: 116 },
       respuestas: {
-        mirar: 'Tiene algo negro de lana en la boca.',
+        mirar: { dialogo: 'mirar-perro' },
         agarrar: 'No lo suelta ni loco.',
         hablar: 'Mueve la cola, pero no larga nada.',
       },
@@ -100,7 +106,7 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       acercarse: { x: 178, y: 108 },
       respuestas: {
         mirar: 'Golosinas, galletitas y un kiosquero con cara de pocos amigos.',
-        hablar: 'Buenas. ¿Qué vas a llevar?',
+        hablar: { dialogo: 'kiosquero-perro' },
       },
     },
     {
@@ -114,4 +120,6 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       },
     },
   ],
+  // El kiosquero se ve detrás del mostrador, sin sprite por ahora.
+  anclas: { kiosquero: { x: 178, y: 62 } },
 };
