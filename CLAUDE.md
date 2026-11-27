@@ -54,6 +54,15 @@ docs/                diseño y estilo
 - **Música:** los temas suenan desde archivos que pasan las bandas, en `public/assets/audio/`. No embeber reproductores de Spotify ni bajar audio de plataformas. Si todavía no hay archivo, usar un placeholder silencioso y dejarlo anotado.
 - **Privacidad:** el público incluye menores. No pedir mail, edad ni datos personales; la medición no se asocia al nombre del jugador.
 
+## Forma de trabajo
+
+- **De dónde sale el diseño:** del canvas de Claude Design (arte, interfaz, composición) y de `docs/diseno.md` (jugabilidad, misiones, diálogos). Si un pedido choca con alguno de los dos, preguntar antes de inventar.
+- **Pedidos con criterios de aceptación:** cada tarea llega con criterios de aceptación. Son la vara para dar algo por terminado y para probarlo.
+- **Una rama por tarea:** cada tarea va en su propia rama, creada desde `main` actualizado, con un nombre corto y descriptivo en kebab-case (por ejemplo, `pausa-y-teclado`).
+- **Nunca subir directo a `main`:** los cambios llegan a `main` solo a través de un pull request.
+- **Pull request a `main`:** con un resumen de qué cambia y de cómo se probó, criterio por criterio (y capturas cuando el cambio se ve). Anotar también lo que quedó pendiente o sin probar.
+- **Revisión antes del merge:** el PR se revisa antes de mergearlo. El merge lo hace quien revisa, no Claude.
+
 ## Primeras tareas
 
 1. Inicializar el proyecto con Vite + TypeScript + Phaser 3, con la configuración de `src/main.ts` descrita arriba.
