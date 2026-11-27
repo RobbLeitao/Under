@@ -42,6 +42,8 @@ docs/                diseño y estilo
 - **Datos separados de la lógica:** diálogos, misiones y bandas viven en `src/data/` como objetos tipados, para que agregar una banda o un diálogo no toque el código de las escenas.
 - **Variables de texto:** `{jugador}` es el nombre que eligió quien juega; `{plataforma}` es el link que manda cada banda (Spotify, YouTube, Bandcamp u otra). Nunca hardcodear una plataforma.
 - **Celular primero en la interacción:** todo se juega con toques. Mirar, Agarrar y Hablar son tres botones grandes (mínimo 44 px de alto); para usar o dar un objeto se toca en el inventario y después se toca el destino (también se puede arrastrar).
+- **Teclado, además de los toques:** flechas y WASD mueven al jugador. Izquierda/derecha (A/D) caminan por la vereda; arriba/abajo (W/S) se mueven en profundidad dentro de la franja de la vereda, sin salirse. Si el jugador iba hacia un punto tocado, una tecla cancela ese destino (y la acción que esperaba). Las teclas no se capturan y existen solo en las escenas de juego, para no interferir con el campo del nombre en la pantalla de inicio. Esc o P abren la pausa.
+- **Pausa:** botón arriba a la derecha de cada escena de juego (y Esc o P). Menú con Seguir, Sonido sí/no (se guarda en el dispositivo), Empezar de nuevo (pide confirmación y borra el avance, no el nombre) e Ir al inicio.
 - **Inventario vs. Phone:** los objetos físicos (monedas, galletitas, pasamontañas) van al inventario de abajo; lo digital (música, álbum de figuritas) vive en el Phone.
 
 ## Reglas

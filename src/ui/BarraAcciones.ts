@@ -57,6 +57,7 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
   private objetivo: string | null = null;
   /** Objeto del inventario elegido con un toque, para usarlo tocando algo en la escena. */
   private elegido: string | null = null;
+  private novedad!: Phaser.GameObjects.Rectangle;
   private temporizador?: Phaser.Time.TimerEvent;
   private alCambiarInventario = () => this.dibujarInventario();
 
@@ -92,6 +93,13 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
     }
 
     this.crearBoton(ANCHO - MARGEN - ANCHO_PHONE, ANCHO_PHONE, 'Phone', () => this.opciones.alTocarPhone(), true);
+    // Punto de novedades: algo nuevo en el Phone que todavía no se vio.
+    this.novedad = escena.add
+      .rectangle(ANCHO - MARGEN - 16, Y_FILA - 4, 20, 20, COLOR.acento)
+      .setStrokeStyle(4, COLOR.fondo)
+      .setVisible(false);
+    this.add(this.novedad);
+    escena.tweens.add({ targets: this.novedad, scale: 1.25, duration: 500, yoyo: true, repeat: -1 });
 
     escena.add.existing(this);
     escena.input.dragDistanceThreshold = UMBRAL_ARRASTRE;
@@ -116,6 +124,10 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
     } else {
       this.escribirLinea('Tocá algo o a alguien, o caminá por la vereda.').setColor(TEXTO.apagado);
     }
+  }
+
+  setNovedad(hay: boolean) {
+    this.novedad.setVisible(hay);
   }
 
   get objetoElegido() {

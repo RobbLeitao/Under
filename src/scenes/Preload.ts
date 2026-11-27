@@ -4,6 +4,7 @@ import { BANDAS } from '../data/bandas';
 import { OBJETOS } from '../data/objetos';
 import { inventario } from '../systems/inventario';
 import { iniciarEstado, reiniciarPartida } from '../systems/estado';
+import { sonidoActivo } from '../systems/preferencias';
 
 /** Sprites en SVG con su tamaño en unidades; se rasterizan ya escalados x4. */
 const SPRITES: Record<string, { archivo: string; ancho: number; alto: number }> = {
@@ -47,6 +48,7 @@ export class Preload extends Phaser.Scene {
   create() {
     this.achicarLogos();
     iniciarEstado();
+    this.sound.mute = !sonidoActivo();
 
     // Solo en desarrollo: ?reiniciar borra el progreso, ?objetos=a,b carga esos objetos
     // en el inventario y ?escena=Clave arranca directo en esa escena.

@@ -13,9 +13,15 @@ export interface Banda {
   logo: string | null;
 }
 
-// PENDIENTE: pedirle a cada banda su link (Spotify, YouTube, Bandcamp u otra) y su logo.
+// PENDIENTE: pedirle a las demás bandas su link (Spotify, YouTube, Bandcamp u otra) y su logo.
 export const BANDAS: Record<string, Banda> = {
-  orate: { clave: 'orate', nombre: 'Orate', estilo: 'Old school death metal', plataforma: null, logo: 'orate.jpg' },
+  orate: {
+    clave: 'orate',
+    nombre: 'Orate',
+    estilo: 'Old school death metal',
+    plataforma: { nombre: 'Spotify', url: 'https://open.spotify.com/artist/6B7WCiPeOEK3zJ1nRoe9St' },
+    logo: 'orate.jpg',
+  },
   kainoas: { clave: 'kainoas', nombre: 'Kainoas', estilo: 'Nu metal', plataforma: null, logo: null },
   abismal: { clave: 'abismal', nombre: 'Abismal', estilo: 'Groove metal', plataforma: null, logo: null },
   avtomata: { clave: 'avtomata', nombre: 'Avtomata', estilo: 'Modern death metal', plataforma: null, logo: null },

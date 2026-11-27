@@ -40,8 +40,12 @@ export interface Mision {
   /** Se revisan en orden: gana la primera que coincide. */
   reglas: Regla[];
   apariencias: Apariencia[];
-  /** Mensaje en la barra al terminar. */
-  mensajeFinal: string;
+  /** Nombre de la misión, para el panel de "¡Misión cumplida!". */
+  titulo: string;
+  /** Banda a la que se invita a escuchar al terminar. */
+  banda: string;
+  /** Lo que viene después, para que el jugador sepa hacia dónde ir. */
+  siguiente: string;
   /** Música de fondo de la entrada: un pedazo de un tema de data/temas.ts (en segundos). */
   musicaEntrada?: { tema: string; desde: number; duracion: number; volumen: number };
 }

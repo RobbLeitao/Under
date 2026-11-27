@@ -11,7 +11,9 @@ export const MISION_1: Mision = {
   clave: 'mision1',
   marcaInicio: 'mision1-inicio',
   marcaFin: 'mision1-completa',
-  mensajeFinal: 'Nuevo en tu Phone: un tema de Orate y la figurita de Nikola.',
+  titulo: 'El pasamontañas perdido',
+  banda: 'orate',
+  siguiente: 'La prueba de sonido en Vinoteca Perrier. Muy pronto.',
   // El riff que suena en los auriculares del jugador mientras llega Nikola. El MP3 tiene
   // 12 s de silencio y una intro suave hasta 0:23; en 0:24 entra la banda con todo.
   musicaEntrada: { tema: 'orate-psicopata', desde: 24, duracion: 12, volumen: 0.15 },

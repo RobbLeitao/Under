@@ -69,7 +69,19 @@ export function listaRecompensas(tipo: 'tema' | 'figurita'): string[] {
 export function darRecompensa(clave: string) {
   if (recompensas.has(clave)) return;
   recompensas.add(clave);
+  marcas.add(MARCA_NOVEDADES);
   guardar();
+}
+
+/** Hay recompensas que el jugador todavía no vio en el Phone. */
+const MARCA_NOVEDADES = 'novedades-phone';
+
+export function hayNovedades() {
+  return marcas.has(MARCA_NOVEDADES);
+}
+
+export function novedadesVistas() {
+  if (marcas.delete(MARCA_NOVEDADES)) guardar();
 }
 
 export function cumple(condicion: Condicion | undefined): boolean {

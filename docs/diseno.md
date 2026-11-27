@@ -141,6 +141,8 @@ Una misión fácil de 5 a 8 minutos que presenta a Nikola, enseña a jugar y ter
 ### Cómo se juega
 
 - Se toca el piso para caminar y un objeto o personaje para ver tres acciones: **Mirar**, **Agarrar** y **Hablar**.
+- En la computadora también se camina con el teclado: **flechas o WASD**. Izquierda y derecha (A/D) caminan por la vereda; arriba y abajo (W/S) se mueven en profundidad, sin salirse de la vereda. Si el jugador iba hacia algo que se tocó, una tecla cancela ese destino.
+- **Pausa:** botón arriba a la derecha, o Esc o P. Desde ahí se sigue, se apaga o prende el sonido, se empieza de nuevo o se vuelve al inicio.
 - Para usar o dar algo, se arrastra el objeto desde el inventario hasta su destino.
 - Los diálogos aparecen en viñetas, con sonidos balbuceados. `{jugador}` es el nombre que eligió quien juega.
 
@@ -177,6 +179,8 @@ Los diálogos de Nikola se ajustan con él, para que suene como habla.
 - El **enlace para escuchar a Orate en {plataforma}**.
 - Un **tema de Orate** ("Psicopata (El Loco de la Ruta)") en el Phone del jugador, que suena completo desde el archivo que pasa la banda.
 - La **figurita de Nikola** en el álbum.
+
+Al terminar aparece un panel de **¡Misión cumplida!** con lo que se ganó, el botón para escuchar a Orate en {plataforma}, otro para abrir el Phone y un adelanto de lo que viene (la misión 2). Cuando hay algo nuevo en el Phone, su botón muestra un punto amarillo hasta que se abre. Link de Orate: Spotify (cargado en `src/data/bandas.ts`).
 
 ### Recursos necesarios
 

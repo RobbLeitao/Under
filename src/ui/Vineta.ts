@@ -3,6 +3,8 @@ import { ANCHO, ALTO, ALTO_ESCENA } from '../config';
 import { HABLANTES, type ClaveHablante, type Linea } from '../data/dialogos';
 import { completarTexto } from '../systems/textos';
 import { balbucear } from '../systems/voz';
+import { abrirPlataforma, textoBotonPlataforma } from '../systems/enlaces';
+import { anchoBoton, crearBoton } from './Boton';
 
 const FUENTE = '"Pixelify Sans"';
 const COLOR_FONDO = 0xf4efe6;
@@ -49,8 +51,12 @@ class Vineta extends Phaser.GameObjects.Container {
 
     // Se mide con el texto entero para que la caja no cambie de tamaño mientras se escribe,
     // y los renglones se cortan una sola vez para que no salten ni se salgan de la caja.
-    const ancho = Math.ceil(Math.max(nombre.width, this.texto.width) + RELLENO * 2);
-    const alto = Math.ceil(this.texto.y + this.texto.height + RELLENO);
+    // Si la línea invita a escuchar a la banda ({plataforma}), lleva el botón con el enlace.
+    const etiquetaEnlace = banda && linea.texto.includes('{plataforma}') ? textoBotonPlataforma(banda) : null;
+    const anchoEnlace = etiquetaEnlace ? anchoBoton(escena, etiquetaEnlace) : 0;
+    const ancho = Math.ceil(Math.max(nombre.width, this.texto.width, anchoEnlace) + RELLENO * 2);
+    const yEnlace = Math.ceil(this.texto.y + this.texto.height + 16);
+    const alto = etiquetaEnlace ? yEnlace + 52 + 4 + RELLENO : Math.ceil(this.texto.y + this.texto.height + RELLENO);
     this.completo = this.texto.getWrappedText(this.completo).join('\n');
     this.texto.setWordWrapWidth(null).setText('');
 
@@ -78,6 +84,9 @@ class Vineta extends Phaser.GameObjects.Container {
     colita(0, arriba ? -BORDE : BORDE, 6);
 
     this.add([g, nombre, this.texto]);
+    if (etiquetaEnlace && banda) {
+      this.add(crearBoton(escena, RELLENO, yEnlace, anchoEnlace, etiquetaEnlace, () => abrirPlataforma(banda)));
+    }
     this.setDepth(20000);
     escena.add.existing(this);
 

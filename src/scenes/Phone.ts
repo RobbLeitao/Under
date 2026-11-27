@@ -3,7 +3,8 @@ import { ANCHO, ALTO, CAJA_LOGO } from '../config';
 import { BANDAS } from '../data/bandas';
 import { FIGURITAS } from '../data/figuritas';
 import { TEMAS } from '../data/temas';
-import { listaRecompensas } from '../systems/estado';
+import { listaRecompensas, novedadesVistas } from '../systems/estado';
+import { abrirPlataforma, textoBotonPlataforma } from '../systems/enlaces';
 import { alternar, estaSonando, formatoTiempo, progreso, temaActual } from '../systems/musica';
 import { sinLigaduras } from '../systems/textos';
 
@@ -56,8 +57,11 @@ export class Phone extends Phaser.Scene {
     super('Phone');
   }
 
-  init(datos: { volverA: string }) {
+  private pantallaInicial: Pantalla = 'inicio';
+
+  init(datos: { volverA: string; pantalla?: Pantalla }) {
     this.volverA = datos.volverA;
+    this.pantallaInicial = datos.pantalla ?? 'inicio';
   }
 
   create() {
@@ -78,7 +82,8 @@ export class Phone extends Phaser.Scene {
 
     this.contenido = this.add.container(0, 0);
     this.dibujarBarraEstado();
-    this.mostrar('inicio');
+    this.mostrar(this.pantallaInicial);
+    novedadesVistas();
 
     this.time.addEvent({ delay: 250, loop: true, callback: () => this.actualizar() });
     this.input.keyboard?.on('keydown-ESC', () => this.cerrar());
@@ -158,6 +163,9 @@ export class Phone extends Phaser.Scene {
     if (pantalla === 'inicio') this.pantallaInicio();
     else if (pantalla === 'musica') this.pantallaMusica();
     else this.pantallaAlbum();
+    if (pantalla !== 'inicio') {
+      this.contenido.add(this.boton(X0 + MARGEN, Y0 + H - 64, W - MARGEN * 2, 48, 'Cerrar', () => this.cerrar()));
+    }
   }
 
   private actualizar() {
@@ -266,13 +274,9 @@ export class Phone extends Phaser.Scene {
       this.reproductor = { tema: clave, boton: icono, relleno, tiempo, sonando };
       y += 44;
 
-      if (banda?.plataforma) {
-        const { nombre, url } = banda.plataforma;
-        this.contenido.add(
-          this.boton(X0 + MARGEN, y, W - MARGEN * 2, 52, `Escuchanos en ${nombre}`, () =>
-            window.open(url, '_blank', 'noopener'),
-          ),
-        );
+      const etiqueta = textoBotonPlataforma(tema.banda, false);
+      if (etiqueta) {
+        this.contenido.add(this.boton(X0 + MARGEN, y, W - MARGEN * 2, 52, etiqueta, () => abrirPlataforma(tema.banda)));
         y += 68;
       }
     }

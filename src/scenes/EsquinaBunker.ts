@@ -6,11 +6,12 @@ import { DIALOGOS, type ClaveHablante, type Dialogo } from '../data/dialogos';
 import { OBJETOS } from '../data/objetos';
 import { MISION_1 } from '../data/misiones/mision1';
 import type { Accion } from '../data/misiones/tipos';
-import { cumple, marcar, tieneMarca } from '../systems/estado';
+import { cumple, hayNovedades, marcar, tieneMarca } from '../systems/estado';
 import { aplicarEfectos, buscarRegla, texturaDe } from '../systems/misiones';
 import { cortarFragmento, tocarFragmento } from '../systems/musica';
 import { BarraAcciones } from '../ui/BarraAcciones';
 import { reproducirDialogo } from '../ui/Vineta';
+import { mostrarMisionCumplida } from '../ui/PanelMision';
 
 /** Velocidad del jugador, en píxeles por segundo. */
 const VELOCIDAD = 260;
@@ -18,10 +19,16 @@ const VELOCIDAD = 260;
 const MS_POR_PASO = 140;
 /** Duración de la entrada de Nikola al empezar la misión. */
 const MS_ENTRADA_NIKOLA = 2600;
+/** Con teclado, el movimiento en profundidad (arriba/abajo) es más lento: la vereda es angosta. */
+const FACTOR_PROFUNDIDAD = 0.5;
+const LADO_BOTON_PAUSA = 56;
+
+type Direccion = 'izquierda' | 'derecha' | 'arriba' | 'abajo';
 
 /**
- * La esquina de El Bunker: fondo, jugador, Nikola y el perro. Se camina tocando el piso;
- * al tocar a alguien o algo, el jugador se acerca y se elige una acción en la barra.
+ * La esquina de El Bunker: fondo, jugador, Nikola y el perro. Se camina tocando el piso
+ * o con el teclado (flechas o WASD); al tocar a alguien o algo, el jugador se acerca
+ * y se elige una acción en la barra. Esc o P pausan.
  */
 export class EsquinaBunker extends Phaser.Scene {
   private jugador!: Phaser.GameObjects.Image;
@@ -38,9 +45,28 @@ export class EsquinaBunker extends Phaser.Scene {
   /** Mientras hay un diálogo o una animación, las acciones nuevas se ignoran. */
   private ocupado = false;
   private objetosEnEscena: { sprite: Phaser.GameObjects.Image; datos: (typeof DATOS.objetos)[number] }[] = [];
+  /** Hay un diálogo, una animación o un panel en pantalla: el teclado no mueve al jugador. */
+  private enDialogo = false;
+  private teclas: Record<Direccion, Phaser.Input.Keyboard.Key[]> = { izquierda: [], derecha: [], arriba: [], abajo: [] };
+  private moviendoConTeclado = false;
 
   constructor() {
     super('EsquinaBunker');
+  }
+
+  /** Deja todo como nuevo: la escena se vuelve a crear al empezar de nuevo o al volver del inicio. */
+  init() {
+    this.pies = { x: 0, y: 0 };
+    this.caminata = undefined;
+    this.pasos = undefined;
+    this.rebote = 0;
+    this.seleccionado = null;
+    this.llegada = Promise.resolve();
+    this.alLlegar = undefined;
+    this.ocupado = false;
+    this.objetosEnEscena = [];
+    this.enDialogo = false;
+    this.moviendoConTeclado = false;
   }
 
   create() {
@@ -84,6 +110,16 @@ export class EsquinaBunker extends Phaser.Scene {
       alSoltarObjeto: (objeto, x, y) => this.soltarObjeto(objeto, x, y),
     });
 
+    this.barra.setNovedad(hayNovedades());
+    // Al volver del Phone, el punto de novedades se apaga. Los eventos de la escena
+    // sobreviven a un reinicio, así que se sueltan al apagarla.
+    const alVolver = () => this.barra.setNovedad(hayNovedades());
+    this.events.on(Phaser.Scenes.Events.RESUME, alVolver);
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => this.events.off(Phaser.Scenes.Events.RESUME, alVolver));
+
+    this.crearBotonPausa();
+    this.crearTeclas();
+
     for (const punto of DATOS.puntos) {
       const z = punto.zona;
       this.add
@@ -108,7 +144,7 @@ export class EsquinaBunker extends Phaser.Scene {
       this.time.delayedCall(0, () => this.abrirPhone());
     } else if (atajo && atajo in DIALOGOS) {
       const d: Dialogo = DIALOGOS[atajo as keyof typeof DIALOGOS];
-      void reproducirDialogo(this, d.lineas, (quien) => this.ancla(quien), d.banda);
+      void this.dialogo(d);
     } else if (!tieneMarca(MISION_1.marcaInicio)) {
       this.entradaNikola();
     }
@@ -125,6 +161,7 @@ export class EsquinaBunker extends Phaser.Scene {
     const pies = { x: ANCHO + nikola.width };
     let paso = 0;
     this.ocupado = true;
+    this.enDialogo = true;
 
     const pasos = this.time.addEvent({
       delay: MS_POR_PASO,
@@ -141,17 +178,113 @@ export class EsquinaBunker extends Phaser.Scene {
         nikola.setPosition(destino, piso);
         marcar(MISION_1.marcaInicio);
         this.ocupado = false;
+        this.enDialogo = false;
         this.barra.mostrarMensaje('Nikola parece preocupado. Tocalo y hablale.', 5000);
       },
     });
     nikola.setPosition(pies.x, piso);
   }
 
+  /** Botón de pausa arriba a la derecha; queda por encima de las viñetas. */
+  private crearBotonPausa() {
+    const x = ANCHO - 16 - LADO_BOTON_PAUSA;
+    const y = 16;
+    const fondo = this.add
+      .rectangle(x, y, LADO_BOTON_PAUSA, LADO_BOTON_PAUSA, 0x241f2e, 0.9)
+      .setOrigin(0)
+      .setStrokeStyle(4, 0x3a3348)
+      .setDepth(21000)
+      .setInteractive({ useHandCursor: true });
+    this.add
+      .graphics()
+      .setDepth(21001)
+      .fillStyle(0xf4efe6)
+      .fillRect(x + 18, y + 16, 8, 24)
+      .fillRect(x + 30, y + 16, 8, 24);
+    fondo.on('pointerup', () => this.abrirPausa());
+  }
+
+  private abrirPausa() {
+    if (!this.scene.isActive()) return;
+    this.scene.launch('Pausa', { volverA: this.scene.key });
+    this.scene.pause();
+  }
+
+  /**
+   * Flechas y WASD. Sin captura de teclas, para no robarle letras a ningún campo de texto.
+   * Las teclas son de esta escena: en la pantalla de inicio no existen.
+   */
+  private crearTeclas() {
+    const teclado = this.input.keyboard;
+    if (!teclado) return;
+    const K = Phaser.Input.Keyboard.KeyCodes;
+    const tecla = (codigo: number) => teclado.addKey(codigo, false);
+    this.teclas = {
+      izquierda: [tecla(K.LEFT), tecla(K.A)],
+      derecha: [tecla(K.RIGHT), tecla(K.D)],
+      arriba: [tecla(K.UP), tecla(K.W)],
+      abajo: [tecla(K.DOWN), tecla(K.S)],
+    };
+    teclado.on('keydown-ESC', () => this.abrirPausa());
+    teclado.on('keydown-P', () => this.abrirPausa());
+  }
+
+  update(_tiempo: number, delta: number) {
+    this.moverConTeclado(delta);
+  }
+
+  private apretada(direccion: Direccion) {
+    return this.teclas[direccion].some((t) => t.isDown);
+  }
+
+  /**
+   * Izquierda/derecha caminan por la vereda; arriba/abajo, en profundidad dentro de la franja.
+   * Una tecla cancela el destino tocado (y la acción que esperaba la llegada).
+   */
+  private moverConTeclado(delta: number) {
+    if (this.enDialogo) return;
+    const dx = Number(this.apretada('derecha')) - Number(this.apretada('izquierda'));
+    const dy = Number(this.apretada('abajo')) - Number(this.apretada('arriba'));
+
+    if (!dx && !dy) {
+      if (this.moviendoConTeclado) {
+        this.moviendoConTeclado = false;
+        this.detener();
+      }
+      return;
+    }
+
+    if (!this.moviendoConTeclado || this.caminata?.isPlaying()) {
+      this.moviendoConTeclado = true;
+      this.caminata?.stop();
+      this.caminata = undefined;
+      this.detener();
+      if (this.seleccionado) {
+        this.seleccionado = null;
+        this.barra.setObjetivo(null);
+      }
+      this.iniciarPasos();
+    }
+
+    const z = DATOS.zonaCaminable;
+    const avance = (VELOCIDAD * delta) / 1000;
+    this.pies.x = Phaser.Math.Clamp(this.pies.x + dx * avance, z.xMin * ESCALA, z.xMax * ESCALA);
+    this.pies.y = Phaser.Math.Clamp(this.pies.y + dy * avance * FACTOR_PROFUNDIDAD, z.yMin * ESCALA, z.yMax * ESCALA);
+    this.actualizarJugador();
+  }
+
+  /** Muestra un diálogo; mientras dura, el teclado no mueve al jugador. */
+  private async dialogo(d: Dialogo) {
+    this.enDialogo = true;
+    await reproducirDialogo(this, d.lineas, (quien) => this.ancla(quien), d.banda);
+    this.enDialogo = false;
+  }
+
   /** Abre el Phone encima de la escena, que queda en pausa hasta que se cierre. */
-  private abrirPhone() {
+  private abrirPhone(pantalla?: 'musica' | 'album') {
     if (this.ocupado) return;
     cortarFragmento();
-    this.scene.launch('Phone', { volverA: this.scene.key });
+    this.scene.launch('Phone', { volverA: this.scene.key, pantalla });
     this.scene.pause();
   }
 
@@ -212,10 +345,19 @@ export class EsquinaBunker extends Phaser.Scene {
 
     const dialogo: Dialogo =
       typeof respuesta === 'string' ? { lineas: [{ quien: 'jugador', texto: respuesta }] } : DIALOGOS[respuesta.dialogo];
-    await reproducirDialogo(this, dialogo.lineas, (quien) => this.ancla(quien), dialogo.banda);
+    await this.dialogo(dialogo);
 
-    if (terminaMision) this.barra.mostrarMensaje(MISION_1.mensajeFinal, 8000);
-    else if (agregados.length) {
+    if (terminaMision) {
+      this.barra.setNovedad(hayNovedades());
+      const recompensas = (regla?.efectos ?? []).flatMap((e) => ('recompensa' in e ? [e.recompensa] : []));
+      this.enDialogo = true;
+      const salida = await mostrarMisionCumplida(this, MISION_1, recompensas);
+      this.enDialogo = false;
+      this.ocupado = false;
+      if (salida === 'phone') this.abrirPhone('musica');
+      return;
+    }
+    if (agregados.length) {
       const nombres = agregados.map((o) => OBJETOS[o]?.nombre ?? o).join(' y ');
       this.barra.mostrarMensaje(`Conseguiste ${nombres}. Tocá el objeto abajo y después dónde usarlo.`, 6000);
     }
@@ -281,14 +423,7 @@ export class EsquinaBunker extends Phaser.Scene {
     this.caminata?.stop();
     this.alLlegar?.();
     this.llegada = new Promise((resolver) => (this.alLlegar = resolver));
-    this.pasos ??= this.time.addEvent({
-      delay: MS_POR_PASO,
-      loop: true,
-      callback: () => {
-        this.rebote = this.rebote ? 0 : ESCALA;
-        this.actualizarJugador();
-      },
-    });
+    this.iniciarPasos();
 
     this.caminata = this.tweens.add({
       targets: this.pies,
@@ -297,6 +432,18 @@ export class EsquinaBunker extends Phaser.Scene {
       duration: (distancia / VELOCIDAD) * 1000,
       onUpdate: () => this.actualizarJugador(),
       onComplete: () => this.detener(),
+    });
+  }
+
+  /** Rebote de 4 px que alterna mientras el jugador camina. */
+  private iniciarPasos() {
+    this.pasos ??= this.time.addEvent({
+      delay: MS_POR_PASO,
+      loop: true,
+      callback: () => {
+        this.rebote = this.rebote ? 0 : ESCALA;
+        this.actualizarJugador();
+      },
     });
   }
 

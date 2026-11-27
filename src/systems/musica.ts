@@ -97,6 +97,14 @@ export function cortarFragmento() {
   fragmento = null;
 }
 
+/** Corta todo lo que suene (tema del Phone y fragmento), por ejemplo al reiniciar la partida. */
+export function detenerMusica() {
+  cortarFragmento();
+  actual?.sonido.stop();
+  actual?.sonido.destroy();
+  actual = null;
+}
+
 export function formatoTiempo(segundos: number) {
   const s = Math.max(0, Math.floor(segundos));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
