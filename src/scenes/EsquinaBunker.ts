@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { ANCHO, ALTO_ESCENA, ESCALA } from '../config';
-import { ESQUINA_EL_BUNKER as DATOS, type PuntoInteres, type Respuesta } from '../data/escenas';
+import { ESQUINA_EL_BUNKER as DATOS, type Personaje, type PuntoInteres, type Respuesta } from '../data/escenas';
 import { RESPUESTAS_POR_DEFECTO, RESPUESTA_USAR_POR_DEFECTO } from '../data/acciones';
 import { DIALOGOS, type ClaveHablante, type Dialogo } from '../data/dialogos';
 import { OBJETOS } from '../data/objetos';
@@ -9,14 +9,20 @@ import type { Accion } from '../data/misiones/tipos';
 import { cumple, hayNovedades, marcar, tieneMarca } from '../systems/estado';
 import { aplicarEfectos, buscarRegla, texturaDe } from '../systems/misiones';
 import { cortarFragmento, tocarFragmento } from '../systems/musica';
+import { detenerAmbiente, iniciarAmbiente, pasaUnAuto } from '../systems/ambiente';
 import { BarraAcciones } from '../ui/BarraAcciones';
 import { reproducirDialogo } from '../ui/Vineta';
 import { mostrarMisionCumplida } from '../ui/PanelMision';
 
 /** Velocidad del jugador, en píxeles por segundo. */
 const VELOCIDAD = 260;
-/** Cada cuánto alterna el paso (rebote de 4 px) mientras camina. */
+/** Cada cuánto alterna el paso de Nikola en su entrada (rebote de 4 px; no tiene hoja de caminar). */
 const MS_POR_PASO = 140;
+/** El perro se frena cada tanto: cuánto camina entre paradas y cuánto dura cada parada. */
+const MS_PERRO_CAMINA = [3000, 8000];
+const MS_PERRO_QUIETO = [1500, 4000];
+/** Cada cuánto pasa un auto por la avenida (sonido ambiente). */
+const MS_ENTRE_AUTOS = [7000, 18000];
 /** Duración de la entrada de Nikola al empezar la misión. */
 const MS_ENTRADA_NIKOLA = 2600;
 /** Con teclado, el movimiento en profundidad (arriba/abajo) es más lento: la vereda es angosta. */
@@ -25,18 +31,35 @@ const LADO_BOTON_PAUSA = 56;
 
 type Direccion = 'izquierda' | 'derecha' | 'arriba' | 'abajo';
 
+/** Un personaje que pasea solo por la vereda (el perro). */
+interface Paseante {
+  sprite: Phaser.GameObjects.Sprite;
+  datos: Personaje;
+  /** 1 hacia la derecha, -1 hacia la izquierda. */
+  sentido: 1 | -1;
+  /** Posición en píxeles sin redondear (el sprite se ajusta a la grilla de 4 px). */
+  x: number;
+  quietoHasta: number;
+  proximaParada: number;
+}
+
+const entre = ([min, max]: number[]) => min + Math.random() * (max - min);
+
 /**
  * La esquina de El Bunker: fondo, jugador, Nikola y el perro. Se camina tocando el piso
  * o con el teclado (flechas o WASD); al tocar a alguien o algo, el jugador se acerca
  * y se elige una acción en la barra. Esc o P pausan.
  */
 export class EsquinaBunker extends Phaser.Scene {
-  private jugador!: Phaser.GameObjects.Image;
-  /** Posición de los pies del jugador; el sprite la sigue con el rebote del paso. */
+  private jugador!: Phaser.GameObjects.Sprite;
+  /** Posición de los pies del jugador. */
   private pies = { x: 0, y: 0 };
   private caminata?: Phaser.Tweens.Tween;
-  private pasos?: Phaser.Time.TimerEvent;
-  private rebote = 0;
+  /** El jugador está caminando (con la animación de caminar puesta). */
+  private caminando = false;
+  private paseantes: Paseante[] = [];
+  /** Zonas tocables de cada punto: las de un paseante se mueven con él. */
+  private zonas = new Map<string, Phaser.GameObjects.Zone>();
   private barra!: BarraAcciones;
   private seleccionado: PuntoInteres | null = null;
   /** Se cumple cuando el jugador termina de caminar (o cuando lo interrumpen). */
@@ -58,8 +81,9 @@ export class EsquinaBunker extends Phaser.Scene {
   init() {
     this.pies = { x: 0, y: 0 };
     this.caminata = undefined;
-    this.pasos = undefined;
-    this.rebote = 0;
+    this.caminando = false;
+    this.paseantes = [];
+    this.zonas = new Map();
     this.seleccionado = null;
     this.llegada = Promise.resolve();
     this.alLlegar = undefined;
@@ -83,11 +107,22 @@ export class EsquinaBunker extends Phaser.Scene {
     }
 
     for (const p of DATOS.personajes) {
-      this.add
-        .image(p.x * ESCALA, p.y * ESCALA, texturaDe(MISION_1, p.clave, p.textura))
+      const sprite = this.add
+        .sprite(p.x * ESCALA, p.y * ESCALA, texturaDe(MISION_1, p.clave, p.textura))
         .setOrigin(0.5, 1)
         .setDepth(p.y * ESCALA)
         .setName(p.clave);
+      if (p.paseo) {
+        const ahora = this.time.now;
+        this.paseantes.push({
+          sprite,
+          datos: p,
+          sentido: Math.random() < 0.5 ? 1 : -1,
+          x: sprite.x,
+          quietoHasta: 0,
+          proximaParada: ahora + entre(MS_PERRO_CAMINA),
+        });
+      }
     }
 
     for (const datos of DATOS.objetos) {
@@ -101,7 +136,7 @@ export class EsquinaBunker extends Phaser.Scene {
     this.actualizarObjetosEnEscena();
 
     this.pies = { x: DATOS.inicioJugador.x * ESCALA, y: DATOS.inicioJugador.y * ESCALA };
-    this.jugador = this.add.image(0, 0, 'jugador').setOrigin(0.5, 1);
+    this.jugador = this.add.sprite(0, 0, 'jugador').setOrigin(0.5, 1);
     this.actualizarJugador();
 
     this.barra = new BarraAcciones(this, {
@@ -122,14 +157,27 @@ export class EsquinaBunker extends Phaser.Scene {
 
     // Se crean al revés: en Phaser la última zona queda arriba, y así gana la primera de la
     // lista (los personajes) cuando se superpone con un objeto del fondo, igual que al soltar.
+    // Nikola va primero en la lista, así que su zona queda arriba de todas: el perro,
+    // aunque pase cerca, nunca le tapa un toque.
     for (const punto of [...DATOS.puntos].reverse()) {
       const z = punto.zona;
-      this.add
+      const zona = this.add
         .zone(z.x * ESCALA, z.y * ESCALA, z.ancho * ESCALA, z.alto * ESCALA)
         .setOrigin(0)
         .setInteractive({ useHandCursor: true })
         .on('pointerdown', () => this.tocarPunto(punto));
+      this.zonas.set(punto.clave, zona);
     }
+
+    // Ambiente de calle: rumor de fondo y, cada tanto, un auto.
+    iniciarAmbiente(this);
+    const programarAuto = () =>
+      this.time.delayedCall(entre(MS_ENTRE_AUTOS), () => {
+        pasaUnAuto();
+        programarAuto();
+      });
+    programarAuto();
+    this.events.once(Phaser.Scenes.Events.SHUTDOWN, () => detenerAmbiente());
 
     this.input.on('pointerdown', (puntero: Phaser.Input.Pointer, tocados: Phaser.GameObjects.GameObject[]) => {
       if (puntero.y >= ALTO_ESCENA || tocados.length > 0 || this.ocupado) return;
@@ -231,8 +279,54 @@ export class EsquinaBunker extends Phaser.Scene {
     teclado.on('keydown-P', () => this.abrirPausa());
   }
 
-  update(_tiempo: number, delta: number) {
+  update(tiempo: number, delta: number) {
     this.moverConTeclado(delta);
+    for (const paseante of this.paseantes) this.pasear(paseante, tiempo, delta);
+  }
+
+  /**
+   * El perro va y viene por su tramo de vereda a paso lento, se da vuelta en los extremos
+   * y a veces se frena. Mientras el jugador lo tiene elegido, se queda quieto.
+   */
+  private pasear(p: Paseante, tiempo: number, delta: number) {
+    const paseo = p.datos.paseo;
+    if (!paseo) return;
+    const base = texturaDe(MISION_1, p.datos.clave, p.datos.textura);
+    const elegido = this.seleccionado?.clave === p.datos.clave;
+    if (!elegido && tiempo >= p.proximaParada) {
+      p.quietoHasta = tiempo + entre(MS_PERRO_QUIETO);
+      p.proximaParada = p.quietoHasta + entre(MS_PERRO_CAMINA);
+    }
+
+    if (elegido || tiempo < p.quietoHasta) {
+      // Quieto: sprite base, en el lugar donde está.
+      if (p.sprite.anims.isPlaying) p.sprite.stop();
+      if (p.sprite.texture.key !== base) p.sprite.setTexture(base);
+    } else {
+      // Primero la animación y después el paso: nunca se mueve sin animar.
+      p.sprite.play(`${base}-camina`, true);
+      p.x += p.sentido * paseo.velocidad * ESCALA * (delta / 1000);
+      const min = paseo.xMin * ESCALA;
+      const max = paseo.xMax * ESCALA;
+      if (p.x <= min || p.x >= max) {
+        p.x = Phaser.Math.Clamp(p.x, min, max);
+        p.sentido = p.sentido === 1 ? -1 : 1;
+      }
+      p.sprite.setFlipX(p.sentido === -1);
+    }
+    p.sprite.x = Math.round(p.x / ESCALA) * ESCALA;
+
+    // La zona tocable acompaña al perro siempre, quieto o caminando.
+    const zona = this.zonas.get(p.datos.clave);
+    const punto = DATOS.puntos.find((q) => q.clave === p.datos.clave);
+    if (zona && punto) zona.x = p.sprite.x + (punto.zona.x - p.datos.x) * ESCALA;
+  }
+
+  /** Adónde camina el jugador para interactuar: si el punto es un paseante, se mueve con él. */
+  private acercarseA(punto: PuntoInteres) {
+    const paseante = this.paseantes.find((p) => p.datos.clave === punto.clave);
+    const x = paseante ? paseante.sprite.x / ESCALA + (punto.acercarse.x - paseante.datos.x) : punto.acercarse.x;
+    return { x: x * ESCALA, y: punto.acercarse.y * ESCALA };
   }
 
   private apretada(direccion: Direccion) {
@@ -267,6 +361,7 @@ export class EsquinaBunker extends Phaser.Scene {
       }
       this.iniciarPasos();
     }
+    if (dx) this.jugador.setFlipX(dx < 0);
 
     const z = DATOS.zonaCaminable;
     const avance = (VELOCIDAD * delta) / 1000;
@@ -278,8 +373,32 @@ export class EsquinaBunker extends Phaser.Scene {
   /** Muestra un diálogo; mientras dura, el teclado no mueve al jugador. */
   private async dialogo(d: Dialogo) {
     this.enDialogo = true;
-    await reproducirDialogo(this, d.lineas, (quien) => this.ancla(quien), d.banda);
+    await reproducirDialogo(this, d.lineas, (quien) => this.ancla(quien), d.banda, (quien, hablando) =>
+      this.gesto(quien, hablando),
+    );
     this.enDialogo = false;
+  }
+
+  /** Sprite y textura base de quien habla (el kiosquero no tiene sprite). */
+  private hablante(quien: ClaveHablante): { sprite: Phaser.GameObjects.Sprite; base: string } | null {
+    if (quien === 'jugador') return { sprite: this.jugador, base: 'jugador' };
+    const datos = DATOS.personajes.find((p) => p.clave === quien);
+    const sprite = this.children.getByName(quien) as Phaser.GameObjects.Sprite | null;
+    if (!datos || !sprite) return null;
+    return { sprite, base: texturaDe(MISION_1, datos.clave, datos.textura) };
+  }
+
+  /** Mientras dura el balbuceo de su línea, el que habla gesticula; después vuelve al sprite base. */
+  private gesto(quien: ClaveHablante, hablando: boolean) {
+    const h = this.hablante(quien);
+    if (!h) return;
+    const animacion = `${h.base}-habla`;
+    if (hablando && this.anims.exists(animacion)) {
+      h.sprite.play(animacion);
+    } else {
+      h.sprite.stop();
+      h.sprite.setTexture(h.base);
+    }
   }
 
   /** Abre el Phone encima de la escena, que queda en pausa hasta que se cierre. */
@@ -293,11 +412,7 @@ export class EsquinaBunker extends Phaser.Scene {
   /** Soltar un objeto del inventario: si cayó sobre algo, el jugador va y lo usa ahí. */
   private soltarObjeto(objeto: string, x: number, y: number) {
     if (this.ocupado) return;
-    const ux = x / ESCALA;
-    const uy = y / ESCALA;
-    const punto = DATOS.puntos.find(
-      ({ zona: z }) => ux >= z.x && ux <= z.x + z.ancho && uy >= z.y && uy <= z.y + z.alto,
-    );
+    const punto = DATOS.puntos.find((q) => this.zonas.get(q.clave)?.getBounds().contains(x, y));
     if (!punto) return;
     this.seleccionar(punto);
     void this.actuar({ usar: objeto });
@@ -317,7 +432,8 @@ export class EsquinaBunker extends Phaser.Scene {
   private seleccionar(punto: PuntoInteres) {
     this.seleccionado = punto;
     this.barra.setObjetivo(punto.nombre);
-    this.caminarHacia(punto.acercarse.x * ESCALA, punto.acercarse.y * ESCALA, false);
+    const destino = this.acercarseA(punto);
+    this.caminarHacia(destino.x, destino.y, false);
   }
 
   /**
@@ -358,6 +474,11 @@ export class EsquinaBunker extends Phaser.Scene {
       this.ocupado = false;
       if (salida === 'phone') this.abrirPhone('musica');
       return;
+    }
+    if (this.paseantes.some((p) => p.datos.clave === punto.clave) && this.seleccionado === punto) {
+      // Terminó la interacción con el perro: se lo suelta y sigue paseando.
+      this.seleccionado = null;
+      this.barra.setObjetivo(null);
     }
     if (agregados.length) {
       const nombres = agregados.map((o) => OBJETOS[o]?.nombre ?? o).join(' y ');
@@ -422,6 +543,7 @@ export class EsquinaBunker extends Phaser.Scene {
     }
 
     if (marcar) this.marcarDestino(fx, fy);
+    if (fx !== this.pies.x) this.jugador.setFlipX(fx < this.pies.x);
     this.caminata?.stop();
     this.alLlegar?.();
     this.llegada = new Promise((resolver) => (this.alLlegar = resolver));
@@ -437,22 +559,20 @@ export class EsquinaBunker extends Phaser.Scene {
     });
   }
 
-  /** Rebote de 4 px que alterna mientras el jugador camina. */
+  /** Pone la animación de caminar (se mantiene mientras el jugador se mueve). */
   private iniciarPasos() {
-    this.pasos ??= this.time.addEvent({
-      delay: MS_POR_PASO,
-      loop: true,
-      callback: () => {
-        this.rebote = this.rebote ? 0 : ESCALA;
-        this.actualizarJugador();
-      },
-    });
+    if (this.caminando) return;
+    this.caminando = true;
+    this.jugador.play('jugador-camina');
   }
 
+  /** Quieto: vuelve al sprite base, de frente. */
   private detener() {
-    this.pasos?.remove();
-    this.pasos = undefined;
-    this.rebote = 0;
+    if (this.caminando) {
+      this.caminando = false;
+      this.jugador.stop();
+      this.jugador.setTexture('jugador').setFlipX(false);
+    }
     this.actualizarJugador();
     this.alLlegar?.();
     this.alLlegar = undefined;
@@ -461,7 +581,7 @@ export class EsquinaBunker extends Phaser.Scene {
   private actualizarJugador() {
     const x = Math.round(this.pies.x / ESCALA) * ESCALA;
     const y = Math.round(this.pies.y / ESCALA) * ESCALA;
-    this.jugador.setPosition(x, y - this.rebote).setDepth(y + 0.5);
+    this.jugador.setPosition(x, y).setDepth(y + 0.5);
   }
 
   /** Cuadradito que marca adónde va el jugador. */

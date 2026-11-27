@@ -24,4 +24,11 @@ const config: Phaser.Types.Core.GameConfig = {
   scene: [Boot, Preload, Inicio, EsquinaBunker, Phone, Pausa],
 };
 
-new Phaser.Game(config);
+const juego = new Phaser.Game(config);
+
+// Solo en desarrollo: acceso al juego desde la consola o desde pruebas automáticas.
+if (import.meta.env.DEV) {
+  void import('./systems/ambiente').then(({ nivelAmbiente }) => {
+    (window as unknown as { __under: unknown }).__under = { juego, nivelAmbiente };
+  });
+}

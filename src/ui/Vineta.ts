@@ -23,6 +23,9 @@ const ESPERA_MINIMA = 250;
 /** Devuelve el punto arriba de la cabeza de cada hablante. */
 export type Anclas = (quien: ClaveHablante) => { x: number; y: number };
 
+/** Avisa cuándo empieza y cuándo termina el balbuceo de una línea (para animar al que habla). */
+export type AlHablar = (quien: ClaveHablante, hablando: boolean) => void;
+
 /**
  * Muestra una línea de diálogo como en Thimbleweed Park: el texto flota sobre la cabeza
  * del que habla, con su color y un contorno oscuro, sin caja ni nombre. La línea aparece
@@ -32,8 +35,15 @@ class Vineta extends Phaser.GameObjects.Container {
   private letras = 0;
   private total: number;
   private balbuceo: Phaser.Time.TimerEvent;
+  private hablando = true;
 
-  constructor(escena: Phaser.Scene, linea: Linea, ancla: { x: number; y: number }, banda?: string) {
+  constructor(
+    escena: Phaser.Scene,
+    private linea: Linea,
+    ancla: { x: number; y: number },
+    banda?: string,
+    private alHablar?: AlHablar,
+  ) {
     super(escena, 0, 0);
     const hablante = HABLANTES[linea.quien];
     const completo = completarTexto(linea.texto, banda);
@@ -70,6 +80,7 @@ class Vineta extends Phaser.GameObjects.Container {
     escena.add.existing(this);
 
     this.total = completo.length;
+    this.alHablar?.(linea.quien, true);
     this.balbuceo = escena.time.addEvent({
       delay: MS_POR_LETRA,
       repeat: this.total - 1,
@@ -77,6 +88,7 @@ class Vineta extends Phaser.GameObjects.Container {
         this.letras++;
         const letra = completo[this.letras - 1];
         if (this.letras % 2 === 1 && /[\p{L}\p{N}]/u.test(letra)) balbucear(escena, hablante.tono);
+        if (this.letras >= this.total) this.callarse();
       },
     });
   }
@@ -85,6 +97,14 @@ class Vineta extends Phaser.GameObjects.Container {
   completar() {
     this.balbuceo.remove();
     this.letras = this.total;
+    this.callarse();
+  }
+
+  /** Termina el gesto de hablar (una sola vez por línea). */
+  private callarse() {
+    if (!this.hablando) return;
+    this.hablando = false;
+    this.alHablar?.(this.linea.quien, false);
   }
 }
 
@@ -92,7 +112,13 @@ class Vineta extends Phaser.GameObjects.Container {
  * Reproduce un diálogo línea por línea. Cada toque pasa a la línea siguiente.
  * Mientras dura, bloquea los toques en la escena y en la barra.
  */
-export function reproducirDialogo(escena: Phaser.Scene, lineas: Linea[], anclas: Anclas, banda?: string): Promise<void> {
+export function reproducirDialogo(
+  escena: Phaser.Scene,
+  lineas: Linea[],
+  anclas: Anclas,
+  banda?: string,
+  alHablar?: AlHablar,
+): Promise<void> {
   return new Promise((resolver) => {
     if (lineas.length === 0) return resolver();
     const bloqueo = escena.add
@@ -101,7 +127,7 @@ export function reproducirDialogo(escena: Phaser.Scene, lineas: Linea[], anclas:
       .setDepth(19999)
       .setInteractive();
     let indice = 0;
-    let actual = new Vineta(escena, lineas[0], anclas(lineas[0].quien), banda);
+    let actual = new Vineta(escena, lineas[0], anclas(lineas[0].quien), banda, alHablar);
 
     // Cada toque pasa a la línea siguiente (la línea ya se ve entera), salvo uno que llegue
     // apenas aparece, para que un doble toque no se saltee una línea sin querer.
@@ -116,7 +142,7 @@ export function reproducirDialogo(escena: Phaser.Scene, lineas: Linea[], anclas:
         resolver();
         return;
       }
-      actual = new Vineta(escena, lineas[indice], anclas(lineas[indice].quien), banda);
+      actual = new Vineta(escena, lineas[indice], anclas(lineas[indice].quien), banda, alHablar);
       desde = escena.time.now;
     });
   });

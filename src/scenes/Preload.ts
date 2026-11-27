@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { CAJA_LOGO, ESCALA } from '../config';
+import { ANIMACIONES } from '../data/animaciones';
 import { BANDAS } from '../data/bandas';
 import { OBJETOS } from '../data/objetos';
 import { inventario } from '../systems/inventario';
@@ -34,6 +35,12 @@ export class Preload extends Phaser.Scene {
         height: s.alto * ESCALA,
       });
     }
+    for (const a of ANIMACIONES) {
+      this.load.spritesheet(a.clave, `assets/sprites/anim/${a.clave}.png`, {
+        frameWidth: a.ancho * ESCALA,
+        frameHeight: a.alto * ESCALA,
+      });
+    }
     for (const banda of Object.values(BANDAS)) {
       if (banda.logo) this.load.image(`logo-original-${banda.clave}`, `assets/logos/${banda.logo}`);
     }
@@ -47,6 +54,15 @@ export class Preload extends Phaser.Scene {
 
   create() {
     this.achicarLogos();
+    for (const a of ANIMACIONES) {
+      if (this.anims.exists(a.clave)) continue;
+      this.anims.create({
+        key: a.clave,
+        frames: this.anims.generateFrameNumbers(a.clave, { start: 0, end: a.cuadros - 1 }),
+        frameRate: a.fps,
+        repeat: -1,
+      });
+    }
     iniciarEstado();
     this.sound.mute = !sonidoActivo();
 

@@ -39,7 +39,7 @@ export const DIALOGOS = {
       {
         quien: 'nikola',
         texto:
-          'Mi pasamontañas, loco. En Orate tocamos todos con pasamontañas. Pasé por el kiosco de Independencia y después ya no lo tenía.',
+          'Mi pasamontañas, loco. En Orate tocamos todos con pasamontañas. Pasé por el kiosco de acá al lado y después ya no lo tenía.',
       },
     ],
   },

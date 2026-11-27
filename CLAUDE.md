@@ -73,4 +73,4 @@ docs/                diseño y estilo
 6. La misión 1 completa, paso a paso, con su estado guardado.
 7. El Phone con las apps Música y Álbum, como en el boceto de Claude Design.
 
-Decisión abierta: si la misión 1 usa una sola escena (El Bunker con el kiosco al lado, como en el boceto) o dos (El Bunker y la avenida Independencia, como en el guion). Hasta que se decida, construir la versión de una sola escena.
+La misión 1 usa una sola escena: la esquina de El Bunker, con el kiosco al lado.
