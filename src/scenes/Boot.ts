@@ -7,7 +7,11 @@ export class Boot extends Phaser.Scene {
   }
 
   create() {
-    const fuente = document.fonts?.load('16px "Pixelify Sans"') ?? Promise.resolve();
-    fuente.catch(() => undefined).finally(() => this.scene.start('Preload'));
+    // Las dos variantes: si la negrita no está cargada, el navegador la imita engrosando
+    // la regular y la C queda cerrada (se lee como O).
+    const fuentes = document.fonts
+      ? Promise.all([document.fonts.load('16px "Pixelify Sans"'), document.fonts.load('bold 16px "Pixelify Sans"')])
+      : Promise.resolve();
+    fuentes.catch(() => undefined).finally(() => this.scene.start('Preload'));
   }
 }
