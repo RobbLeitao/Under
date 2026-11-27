@@ -52,3 +52,17 @@ Boceto: `assets/escenas/esquina-el-bunker-boceto.svg`.
 - **Barra de abajo:** tres botones grandes (Mirar, Agarrar, Hablar), el texto de la acción actual arriba de ellos, inventario de cuatro lugares y botón **Phone** a la derecha.
 - **Viñetas de diálogo:** caja clara con borde y sombra dura de 4 px, nombre del personaje arriba en rojo y texto grande.
 - **Phone:** pantalla de celular de 360x640 con la hora real del dispositivo, apps Música y Álbum, y Mapa y Chats deshabilitados en la demo.
+- **Figuritas del álbum:** carta clara de 3 por fila con el logo de la banda arriba, sobre una franja oscura (`#15131A`), y debajo el nombre del músico en rojo, la banda y el rol. Las que faltan se ven como una carta oscura con "?".
+
+## Logos de las bandas
+
+Son la única imagen del juego que no es pixel art: se usan tal como los manda cada banda.
+
+- **Dónde van:** `public/assets/logos/<banda>.jpg` (o `.png`), y el nombre del archivo se anota en el campo `logo` de la banda en `src/data/bandas.ts`.
+- **Formato:** JPG o PNG, horizontal, de al menos 600 px de ancho. Mejor sobre fondo oscuro o transparente, porque en la figurita se apoya sobre una franja oscura.
+- **Tamaño en el juego:** se achica para entrar en 92x52 px. El juego hace esa copia chica una sola vez al cargar, con escalado suave, porque Phaser con `pixelArt: true` lo dejaría serruchado. No hace falta achicarlo a mano.
+- **Sin logo todavía:** la figurita muestra el nombre de la banda en texto.
+
+## Tipografía: negrita
+
+La negrita de Pixelify Sans cierra la C, el 2 y el 5 (se leen O, 8 y 8). Todo el texto va en regular, salvo el logo "UNDER" y los botones de la barra, que no tienen esas letras.

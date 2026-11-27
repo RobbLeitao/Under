@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { ANCHO, ALTO } from '../config';
+import { ANCHO, ALTO, CAJA_LOGO } from '../config';
 import { BANDAS } from '../data/bandas';
 import { FIGURITAS } from '../data/figuritas';
 import { TEMAS } from '../data/temas';
@@ -319,16 +319,20 @@ export class Phone extends Phaser.Scene {
         this.contenido.add(this.texto(cx, y + ALTO_CARTA / 2, '?', 48, TEXTO.apagado, true).setOrigin(0.5));
         return;
       }
-      if (f.textura && this.textures.exists(f.textura)) {
-        // Escala 0,5: 2 px por unidad, sigue nítido.
-        this.contenido.add(this.add.image(cx, y + 76, f.textura).setOrigin(0.5, 1).setScale(0.5));
-      }
-      this.contenido.add(this.texto(cx, y + 88, f.nombre, 18, TEXTO.rojo).setOrigin(0.5, 0));
+      // Logo de la banda sobre una franja oscura (los logos suelen venir sobre negro).
+      const ALTO_FRANJA = CAJA_LOGO.alto + 8;
+      this.contenido.add(this.add.rectangle(x + 4, y + 4, ANCHO_CARTA - 8, ALTO_FRANJA, COLOR.fondo).setOrigin(0));
+      const nombreBanda = BANDAS[f.banda]?.nombre ?? f.banda;
+      const logo = `logo-${f.banda}`;
       this.contenido.add(
-        this.texto(cx, y + 112, BANDAS[f.banda]?.nombre ?? f.banda, 14, TEXTO.oscuro).setOrigin(0.5, 0),
+        this.textures.exists(logo)
+          ? this.add.image(Math.round(cx), y + 4 + ALTO_FRANJA / 2, logo).setOrigin(0.5)
+          : this.texto(cx, y + 4 + ALTO_FRANJA / 2, nombreBanda, 18, TEXTO.claro).setOrigin(0.5),
       );
+      this.contenido.add(this.texto(cx, y + 76, f.nombre, 18, TEXTO.rojo).setOrigin(0.5, 0));
+      this.contenido.add(this.texto(cx, y + 100, nombreBanda, 14, TEXTO.oscuro).setOrigin(0.5, 0));
       this.contenido.add(
-        this.texto(cx, y + 132, f.rol, 12, TEXTO.oscuro, false, ANCHO_CARTA - 12).setOrigin(0.5, 0).setAlign('center'),
+        this.texto(cx, y + 122, f.rol, 12, TEXTO.oscuro, false, ANCHO_CARTA - 12).setOrigin(0.5, 0).setAlign('center'),
       );
     });
 

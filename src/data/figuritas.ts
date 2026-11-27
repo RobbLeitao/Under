@@ -1,6 +1,6 @@
 /**
  * Figuritas del álbum: una por músico de la demo (docs/diseno.md).
- * Se desbloquean con la recompensa "figurita:<clave>".
+ * Se desbloquean con la recompensa "figurita:<clave>" y muestran el logo de la banda (bandas.ts).
  */
 
 export interface Figurita {
@@ -8,14 +8,12 @@ export interface Figurita {
   nombre: string;
   banda: string;
   rol: string;
-  /** Textura del sprite; null mientras no haya dibujo. */
-  textura: string | null;
 }
 
 export const FIGURITAS: Figurita[] = [
-  { clave: 'nikola', nombre: 'Nikola', banda: 'orate', rol: 'Cantante y guitarrista', textura: 'nikola-pasamontanas' },
-  { clave: 'fat', nombre: 'FAT', banda: 'kainoas', rol: 'Cantante', textura: null },
-  { clave: 'peke', nombre: 'Peke', banda: 'abismal', rol: 'Cantante', textura: null },
-  { clave: 'el-s', nombre: 'El S', banda: 'avtomata', rol: 'Cantante', textura: null },
-  { clave: 'jota', nombre: 'Jota', banda: 'exiliado', rol: 'Bajista', textura: null },
+  { clave: 'nikola', nombre: 'Nikola', banda: 'orate', rol: 'Cantante y guitarrista' },
+  { clave: 'fat', nombre: 'FAT', banda: 'kainoas', rol: 'Cantante' },
+  { clave: 'peke', nombre: 'Peke', banda: 'abismal', rol: 'Cantante' },
+  { clave: 'el-s', nombre: 'El S', banda: 'avtomata', rol: 'Cantante' },
+  { clave: 'jota', nombre: 'Jota', banda: 'exiliado', rol: 'Bajista' },
 ];

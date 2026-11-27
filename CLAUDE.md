@@ -41,13 +41,14 @@ docs/                diseño y estilo
 - **Pixel art nítido:** `pixelArt: true` y `roundPixels: true` en Phaser. Arte base a escala 1:4 dentro de un lienzo de 1280x720 (escena de 320x140 unidades sobre 1280x560, más una barra de interfaz de 160 px).
 - **Datos separados de la lógica:** diálogos, misiones y bandas viven en `src/data/` como objetos tipados, para que agregar una banda o un diálogo no toque el código de las escenas.
 - **Variables de texto:** `{jugador}` es el nombre que eligió quien juega; `{plataforma}` es el link que manda cada banda (Spotify, YouTube, Bandcamp u otra). Nunca hardcodear una plataforma.
-- **Celular primero en la interacción:** todo se juega con toques. Mirar, Agarrar y Hablar son tres botones grandes (mínimo 44 px de alto); para usar o dar un objeto se arrastra desde el inventario.
+- **Celular primero en la interacción:** todo se juega con toques. Mirar, Agarrar y Hablar son tres botones grandes (mínimo 44 px de alto); para usar o dar un objeto se toca en el inventario y después se toca el destino (también se puede arrastrar).
 - **Inventario vs. Phone:** los objetos físicos (monedas, galletitas, pasamontañas) van al inventario de abajo; lo digital (música, álbum de figuritas) vive en el Phone.
 
 ## Reglas
 
 - **Personas, bandas y lugares reales:** solo los que figuran en `docs/diseno.md`, que dieron (o van a dar) su permiso. No sumar otros.
 - **Sin marcas de terceros:** los comercios de las escenas son genéricos. Solo El Bunker, los venues y las bandas del juego llevan su nombre.
+- **Logos de las bandas:** van en `public/assets/logos/` y se anotan en `src/data/bandas.ts` (campo `logo`). Se muestran en las figuritas del álbum. Formato y tamaño en `docs/estilo-visual.md`. No dejar assets en `dist/`: el build la borra.
 - **Música:** los temas suenan desde archivos que pasan las bandas, en `public/assets/audio/`. No embeber reproductores de Spotify ni bajar audio de plataformas. Si todavía no hay archivo, usar un placeholder silencioso y dejarlo anotado.
 - **Privacidad:** el público incluye menores. No pedir mail, edad ni datos personales; la medición no se asocia al nombre del jugador.
 

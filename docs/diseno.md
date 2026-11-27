@@ -37,7 +37,7 @@ El celular del jugador funciona como un **inventario virtual**: guarda todo lo q
 **En la demo:**
 
 - **Música:** los temas de las bandas que se van desbloqueando, con el botón "escuchanos en {plataforma}".
-- **Álbum de figuritas:** una figurita por músico de la escena, que se completa al avanzar.
+- **Álbum de figuritas:** una figurita por músico de la escena, que se completa al avanzar. Cada figurita lleva el **logo de la banda** arriba y, abajo, el nombre del músico, la banda y su rol. Las que todavía no se consiguieron se ven como "?".
 
 **Ideas para después:**
 
@@ -117,7 +117,7 @@ El diseño pasa por Claude Design y el desarrollo por Claude Code en la terminal
 
 **Stack:** Phaser con TypeScript para la demo web, empaquetado después con Capacitor como app de Android e iOS.
 
-- [ ] Confirmar los 2 venues y las 5 bandas, con permiso para usar nombres, imagen y música, y pedirles los archivos de sus temas y el link donde quieren que los escuchen (Spotify, YouTube, Bandcamp u otra plataforma)
+- [ ] Confirmar los 2 venues y las 5 bandas, con permiso para usar nombres, imagen y música, y pedirles los archivos de sus temas el link donde quieren que los escuchen (Spotify, YouTube, Bandcamp u otra plataforma) y su logo para el álbum
 - [x] Escribir la misión 1 completa: escenas, diálogos, objetos y acertijo
 - [x] Definir el estilo visual en Claude Design: paleta, un personaje, un fondo
 - [ ] Armar el prototipo de la misión 1 en Phaser y publicarlo en web
@@ -186,6 +186,7 @@ Los diálogos de Nikola se ajustan con él, para que suene como habla.
 | Personajes animados | Jugador con skin de metalero; Nikola con y sin pasamontañas; kiosquero; perro |
 | Objetos | Monedas, galletitas, pasamontañas |
 | Interfaz | Menú de tres acciones, inventario, viñetas de diálogo, Phone, álbum, campo de nombre |
+| Logos | Logo de Orate para la figurita de Nikola (ya está: `public/assets/logos/orate.jpg`) |
 | Sonido | Un tema de Orate, balbuceos de voces, sonidos de ambiente de calle |
 
 ### Eventos para medir
