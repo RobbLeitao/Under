@@ -26,7 +26,7 @@ src/
   main.ts            configuración de Phaser (1280x720, pixelArt: true, escalado FIT)
   config.ts          medidas del lienzo (ancho, alto, escala, alto de escena y barra)
   scenes/            una escena de Phaser por lugar del juego, más Boot y Preload
-  ui/                barra de acciones, inventario, Phone, viñetas de diálogo
+  ui/                barra de acciones, inventario, Phone, diálogos flotantes
   data/              misiones, diálogos, bandas, objetos (datos, no lógica)
   systems/           inventario, estado de misión, guardado, audio
 public/

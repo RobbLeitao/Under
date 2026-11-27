@@ -18,7 +18,7 @@ Aventura gráfica de "apuntar y hacer clic", con referencias como Monkey Island 
 - **El protagonista es público, no músico.** Es alguien que escucha el género y se cruza con músicos under en la calle. Su nombre lo elige quien juega, con un campo de texto guardado en el dispositivo (el inicio de sesión con OAuth queda para más adelante). Ejemplo: un pibe de 16 años que escucha Slipknot se cruza con Nikola, cantante y guitarrista de Orate, que le cuenta que tocan tal día.
 - **Mapa de Mar del Plata** con los venues donde tocan las bandas.
 - **Misiones simples** que aumentan la dificultad de a poco.
-- **Diálogos en viñetas** con sonidos balbuceados en lugar de voces. Las voces reales de los músicos quedan para una versión futura.
+- **Diálogos flotantes, como en Thimbleweed Park:** el texto aparece sobre la cabeza del que habla, en su color, con sonidos balbuceados en lugar de voces. Las voces reales de los músicos quedan para una versión futura.
 - **Guiños locales** que solo entiende la escena.
 
 ### Skins
@@ -144,7 +144,7 @@ Una misión fácil de 5 a 8 minutos que presenta a Nikola, enseña a jugar y ter
 - En la computadora también se camina con el teclado: **flechas o WASD**. Izquierda y derecha (A/D) caminan por la vereda; arriba y abajo (W/S) se mueven en profundidad, sin salirse de la vereda. Si el jugador iba hacia algo que se tocó, una tecla cancela ese destino.
 - **Pausa:** botón arriba a la derecha, o Esc o P. Desde ahí se sigue, se apaga o prende el sonido, se empieza de nuevo o se vuelve al inicio.
 - Para usar o dar algo, se arrastra el objeto desde el inventario hasta su destino.
-- Los diálogos aparecen en viñetas, con sonidos balbuceados. `{jugador}` es el nombre que eligió quien juega.
+- Los diálogos flotan sobre la cabeza del que habla, en su color, con sonidos balbuceados. `{jugador}` es el nombre que eligió quien juega.
 
 ### Escenas
 
@@ -189,7 +189,7 @@ Al terminar aparece un panel de **¡Misión cumplida!** con lo que se ganó, el 
 | Fondos | La esquina de El Bunker; la avenida Independencia con kiosco |
 | Personajes animados | Jugador con skin de metalero; Nikola con y sin pasamontañas; kiosquero; perro |
 | Objetos | Monedas, galletitas, pasamontañas |
-| Interfaz | Menú de tres acciones, inventario, viñetas de diálogo, Phone, álbum, campo de nombre |
+| Interfaz | Menú de tres acciones, inventario, diálogos flotantes, Phone, álbum, campo de nombre |
 | Logos | Logo de Orate para la figurita de Nikola (ya está: `public/assets/logos/orate.jpg`) |
 | Sonido | Un tema de Orate, balbuceos de voces, sonidos de ambiente de calle |
 

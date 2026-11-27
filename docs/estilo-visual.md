@@ -35,7 +35,7 @@ Hecho en Claude Design. Los bocetos están en `assets/` y la versión que carga 
 | Interfaz, acento | `#E8C46A` |
 | Interfaz, fondo de botones | `#241F2E` con borde `#3A3348` |
 | Texto secundario | `#9A8FB0` |
-| Viñetas de diálogo | fondo `#F4EFE6`, borde y sombra `#15131A` |
+| Texto de diálogo | color de cada personaje (jugador `#F4EFE6`, Nikola `#FF9A4A`, kiosquero `#8FD9FF`) con contorno `#0B0810` |
 | Fondo general | `#15131A` |
 
 El cielo se pinta en franjas de 4 unidades, con el borde entre franjas tramado, para que el degradé no se vea escalonado.
@@ -77,7 +77,7 @@ Dibujado a mano en pixel art, solo con negro `#141018`, blanco `#F4EFE6` y rojo 
 ## Interfaz
 
 - **Barra de abajo:** tres botones grandes (Mirar, Agarrar, Hablar), el texto de la acción actual arriba de ellos, inventario de cuatro lugares y botón **Phone** a la derecha.
-- **Viñetas de diálogo:** caja clara con borde y sombra dura de 4 px, nombre del personaje arriba en rojo y texto grande.
+- **Diálogos, como en Thimbleweed Park:** el texto flota sobre la cabeza del que habla, sin caja ni nombre, en el color de cada personaje (campo `color` en `src/data/dialogos.ts`) y con un contorno oscuro de 8 px para leerse sobre cualquier fondo. La línea aparece entera, centrada, de 30 px y hasta 560 px de ancho; cada toque pasa a la siguiente. El botón "escuchanos en {plataforma}" va abajo del texto. Un personaje nuevo necesita un color que se distinga de los demás.
 - **Phone:** pantalla de celular de 360x640 con la hora real del dispositivo, apps Música y Álbum, y Mapa y Chats deshabilitados en la demo.
 - **Figuritas del álbum:** carta clara de 3 por fila con el logo de la banda arriba, sobre una franja oscura (`#15131A`), y debajo el nombre del músico en rojo, la banda y el rol. Las que faltan se ven como una carta oscura con "?".
 
