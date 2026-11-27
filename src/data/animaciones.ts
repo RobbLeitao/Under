@@ -26,6 +26,7 @@ export const ANIMACIONES: Animacion[] = [
   { clave: 'nikola-pasamontanas-camina', ancho: 28, alto: 53, cuadros: 4, fps: 7 },
   { clave: 'nikola-habla', ancho: 28, alto: 53, cuadros: 3, fps: 4 },
   { clave: 'nikola-pasamontanas-habla', ancho: 28, alto: 53, cuadros: 3, fps: 4 },
+  { clave: 'kiosquero-habla', ancho: 24, alto: 25, cuadros: 3, fps: 4 },
   { clave: 'perro-camina', ancho: 32, alto: 17, cuadros: 4, fps: 8 },
   { clave: 'perro-sin-pasamontanas-camina', ancho: 32, alto: 17, cuadros: 4, fps: 8 },
 ];

@@ -13,6 +13,8 @@ const SPRITES: Record<string, { archivo: string; ancho: number; alto: number }> 
   nikola: { archivo: 'nikola.svg', ancho: 22, alto: 51 },
   'nikola-pasamontanas': { archivo: 'nikola-pasamontanas.svg', ancho: 22, alto: 51 },
   perro: { archivo: 'perro.svg', ancho: 26, alto: 15 },
+  // Silueta del kiosquero, de la cintura para arriba, detrás del mostrador.
+  kiosquero: { archivo: 'kiosquero.svg', ancho: 18, alto: 23 },
   'perro-sin-pasamontanas': { archivo: 'perro-sin-pasamontanas.svg', ancho: 26, alto: 15 },
   'monedas-piso': { archivo: 'monedas-piso.svg', ancho: 8, alto: 3 },
 };

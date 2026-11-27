@@ -113,6 +113,9 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       cuerpo: { mitadAncho: 11, mitadFondo: 3 },
     },
     { clave: 'nikola', textura: 'nikola', x: 198, y: 116, cuerpo: { mitadAncho: 7, mitadFondo: 3 } },
+    // El kiosquero: una silueta detrás del mostrador del kiosco (la tapa está en y 84). No camina
+    // ni ocupa lugar en la vereda; al hablar gesticula con kiosquero-habla. Se toca con el kiosco.
+    { clave: 'kiosquero', textura: 'kiosquero', x: 177, y: 84 },
   ],
   // La parada de colectivo (techo, postes, vidrio, banco y cartel), separada del fondo con
   // scripts/separar-parada.py. Se apoya en la vereda en y 110.
@@ -159,7 +162,8 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       clave: 'kiosco',
       nombre: 'el kiosco',
       zona: { x: 150, y: 22, ancho: 54, alto: 76 },
-      acercarse: { x: 178, y: 108 },
+      // A un costado de la ventanita, para no tapar al kiosquero mientras habla.
+      acercarse: { x: 158, y: 108 },
       respuestas: {
         mirar: 'Golosinas, galletitas y un kiosquero con cara de pocos amigos.',
       },
@@ -175,6 +179,6 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
       },
     },
   ],
-  // El kiosquero se ve detrás del mostrador, sin sprite por ahora.
-  anclas: { kiosquero: { x: 178, y: 62 } },
+  // Todos los que hablan tienen sprite; la viñeta sale arriba de su cabeza.
+  anclas: {},
 };
