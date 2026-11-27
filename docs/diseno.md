@@ -150,7 +150,9 @@ Una misión fácil de 5 a 8 minutos que presenta a Nikola, enseña a jugar y ter
 La misión 1 pasa en **una sola escena** (decidido): **la esquina de El Bunker.** Una calle del centro, con la puerta de El Bunker - Estudio y Salas de Ensayo, el kiosco al lado, una parada de colectivo con un banco y un perro de la cuadra que pasea por la vereda con algo negro de lana en la boca.
 
 - **El perro pasea solo:** va y viene a paso lento por su tramo de vereda (entre la parada y el kiosco, sin acercarse a Nikola), se da vuelta en los extremos y a veces se frena unos segundos. Al tocarlo se queda quieto hasta que termina la interacción y después sigue.
-- **Animaciones:** el jugador camina con su animación (espejada hacia la izquierda) y, quieto, vuelve al sprite base. Quien habla gesticula mientras dura el balbuceo de su línea. Las hojas de cuadros están en `public/assets/sprites/anim/`.
+- **Animaciones:** todos los personajes caminan con el mismo movimiento (paso largo, pie en el aire y brazos que se balancean): el jugador, Nikola al llegar (con o sin pasamontañas) y el perro. Hacia la izquierda, espejado; quietos, vuelven al sprite base. Quien habla gesticula mientras dura el balbuceo de su línea. Las hojas de cuadros están en `public/assets/sprites/anim/`.
+- **No se atraviesa a nadie:** el jugador no puede pasar a través de Nikola ni del perro. Con teclado frena al lado; al tocar un destino del otro lado, los rodea por atrás. El perro, si va a chocar con el jugador, se da vuelta.
+- **La parada de colectivo tiene profundidad:** el jugador puede pasar por atrás (la parada lo tapa y se lo ve a través del vidrio) o por adelante.
 - **Sonido ambiente de calle:** un rumor de fondo y, cada tanto, un auto que pasa, generados con Web Audio (sin archivos). Es bajito, respeta el Sonido sí/no de la pausa y baja más mientras suena un tema en el Phone.
 
 ### Paso a paso

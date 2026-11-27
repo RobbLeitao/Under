@@ -20,6 +20,10 @@ export interface Animacion {
 export const ANIMACIONES: Animacion[] = [
   { clave: 'jugador-camina', ancho: 26, alto: 51, cuadros: 4, fps: 7 },
   { clave: 'jugador-habla', ancho: 26, alto: 51, cuadros: 3, fps: 4 },
+  // nikola-camina y nikola-pasamontanas-camina salen de scripts/generar-caminar.py, con el
+  // mismo movimiento que jugador-camina.
+  { clave: 'nikola-camina', ancho: 28, alto: 53, cuadros: 4, fps: 7 },
+  { clave: 'nikola-pasamontanas-camina', ancho: 28, alto: 53, cuadros: 4, fps: 7 },
   { clave: 'nikola-habla', ancho: 28, alto: 53, cuadros: 3, fps: 4 },
   { clave: 'nikola-pasamontanas-habla', ancho: 28, alto: 53, cuadros: 3, fps: 4 },
   { clave: 'perro-camina', ancho: 32, alto: 17, cuadros: 4, fps: 8 },
