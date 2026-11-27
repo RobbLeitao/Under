@@ -120,7 +120,9 @@ export class EsquinaBunker extends Phaser.Scene {
     this.crearBotonPausa();
     this.crearTeclas();
 
-    for (const punto of DATOS.puntos) {
+    // Se crean al revés: en Phaser la última zona queda arriba, y así gana la primera de la
+    // lista (los personajes) cuando se superpone con un objeto del fondo, igual que al soltar.
+    for (const punto of [...DATOS.puntos].reverse()) {
       const z = punto.zona;
       this.add
         .zone(z.x * ESCALA, z.y * ESCALA, z.ancho * ESCALA, z.alto * ESCALA)
