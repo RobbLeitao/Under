@@ -9,12 +9,14 @@ export interface Hablante {
   nombre: string;
   /** Frecuencia base del balbuceo, en Hz. */
   tono: number;
+  /** Color del texto cuando habla (cada personaje tiene el suyo, como en Thimbleweed Park). */
+  color: string;
 }
 
 export const HABLANTES: Record<ClaveHablante, Hablante> = {
-  jugador: { nombre: '{jugador}', tono: 330 },
-  nikola: { nombre: 'Nikola', tono: 150 },
-  kiosquero: { nombre: 'Kiosquero', tono: 220 },
+  jugador: { nombre: '{jugador}', tono: 330, color: '#F4EFE6' },
+  nikola: { nombre: 'Nikola', tono: 150, color: '#FF9A4A' },
+  kiosquero: { nombre: 'Kiosquero', tono: 220, color: '#8FD9FF' },
 };
 
 export interface Linea {
