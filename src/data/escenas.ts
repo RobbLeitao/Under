@@ -69,27 +69,27 @@ export interface DatosEscena {
 export const ESQUINA_EL_BUNKER: DatosEscena = {
   fondo: 'fondo-esquina-el-bunker',
   carteles: [
-    { texto: 'KIOSCO', x: 178, y: 50.5, tamano: 7, color: '#F4EFE6' },
-    { texto: 'EL', x: 214, y: 47, tamano: 3.5, color: '#F4EFE6' },
-    { texto: 'BUNKER', x: 214, y: 51.25, tamano: 3.5, color: '#E8C46A' },
+    { texto: 'KIOSCO', x: 177, y: 49, tamano: 7, color: '#F4EFE6' },
+    // Sobre la banda roja del logo de El Bunker, en el cartel de la puerta.
+    { texto: 'EL BUNKER', x: 215, y: 37.4, tamano: 3.3, color: '#F4EFE6' },
   ],
   zonaCaminable: { xMin: 8, xMax: 312, yMin: 106, yMax: 117 },
   inicioJugador: { x: 124, y: 116 },
   personajes: [
-    { clave: 'perro', textura: 'perro', x: 169.5, y: 116 },
+    { clave: 'perro', textura: 'perro', x: 150, y: 116 },
     { clave: 'nikola', textura: 'nikola', x: 198, y: 116 },
   ],
   objetos: [
     // Paso 5: las monedas, en el piso abajo del banco de la parada.
-    { textura: 'monedas-piso', x: 23, y: 106, si: { sin: ['agarro-monedas'] }, brilla: true },
+    { textura: 'monedas-piso', x: 22, y: 107, si: { sin: ['agarro-monedas'] }, brilla: true },
   ],
   // Respuestas fijas. Las que dependen del avance están en data/misiones/.
   puntos: [
     {
       clave: 'nikola',
       nombre: 'Nikola',
-      zona: { x: 190, y: 84, ancho: 16, alto: 34 },
-      acercarse: { x: 183, y: 116 },
+      zona: { x: 187, y: 65, ancho: 22, alto: 52 },
+      acercarse: { x: 175, y: 116 },
       respuestas: {
         mirar: 'Es Nikola, de Orate. Se revisa los bolsillos como loco.',
         agarrar: 'Mejor no.',
@@ -99,8 +99,8 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
     {
       clave: 'perro',
       nombre: 'el perro',
-      zona: { x: 158, y: 102, ancho: 22, alto: 16 },
-      acercarse: { x: 154, y: 116 },
+      zona: { x: 137, y: 101, ancho: 27, alto: 16 },
+      acercarse: { x: 125, y: 116 },
       respuestas: {
         mirar: 'Un perro de la cuadra, con algo negro de lana en la boca.',
         agarrar: 'No lo suelta ni loco.',
@@ -120,7 +120,7 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
     {
       clave: 'kiosco',
       nombre: 'el kiosco',
-      zona: { x: 150, y: 46, ancho: 56, alto: 52 },
+      zona: { x: 150, y: 22, ancho: 54, alto: 76 },
       acercarse: { x: 178, y: 108 },
       respuestas: {
         mirar: 'Golosinas, galletitas y un kiosquero con cara de pocos amigos.',
@@ -129,7 +129,7 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
     {
       clave: 'puerta-bunker',
       nombre: 'la puerta de El Bunker',
-      zona: { x: 206, y: 44, ancho: 16, alto: 56 },
+      zona: { x: 204, y: 28, ancho: 22, alto: 72 },
       acercarse: { x: 214, y: 108 },
       respuestas: {
         mirar: 'El Bunker, Estudio y Salas de Ensayo. Se escucha un bombo del otro lado.',

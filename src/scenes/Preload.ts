@@ -8,11 +8,11 @@ import { sonidoActivo } from '../systems/preferencias';
 
 /** Sprites en SVG con su tamaño en unidades; se rasterizan ya escalados x4. */
 const SPRITES: Record<string, { archivo: string; ancho: number; alto: number }> = {
-  jugador: { archivo: 'jugador-metalero.svg', ancho: 12, alto: 30 },
-  nikola: { archivo: 'nikola.svg', ancho: 12, alto: 30 },
-  'nikola-pasamontanas': { archivo: 'nikola-pasamontanas.svg', ancho: 12, alto: 30 },
-  perro: { archivo: 'perro.svg', ancho: 15, alto: 8 },
-  'perro-sin-pasamontanas': { archivo: 'perro-sin-pasamontanas.svg', ancho: 15, alto: 8 },
+  jugador: { archivo: 'jugador-metalero.svg', ancho: 20, alto: 49 },
+  nikola: { archivo: 'nikola.svg', ancho: 22, alto: 51 },
+  'nikola-pasamontanas': { archivo: 'nikola-pasamontanas.svg', ancho: 22, alto: 51 },
+  perro: { archivo: 'perro.svg', ancho: 26, alto: 15 },
+  'perro-sin-pasamontanas': { archivo: 'perro-sin-pasamontanas.svg', ancho: 26, alto: 15 },
   'monedas-piso': { archivo: 'monedas-piso.svg', ancho: 8, alto: 3 },
 };
 
