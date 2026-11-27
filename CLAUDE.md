@@ -15,8 +15,6 @@ Aventura gráfica 2D en pixel art, ambientada en la escena under de rock, metal 
 
 ## Comandos
 
-Todavía no hay proyecto inicializado. La primera tarea es crearlo (ver "Primeras tareas"). Una vez creado:
-
 - `npm install`
 - `npm run dev`: servidor de desarrollo de Vite.
 - `npm run build`: build de producción en `dist/`.
@@ -26,6 +24,7 @@ Todavía no hay proyecto inicializado. La primera tarea es crearlo (ver "Primera
 ```
 src/
   main.ts            configuración de Phaser (1280x720, pixelArt: true, escalado FIT)
+  config.ts          medidas del lienzo (ancho, alto, escala, alto de escena y barra)
   scenes/            una escena de Phaser por lugar del juego, más Boot y Preload
   ui/                barra de acciones, inventario, Phone, viñetas de diálogo
   data/              misiones, diálogos, bandas, objetos (datos, no lógica)
