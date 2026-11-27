@@ -24,39 +24,77 @@ export function progreso(): { segundos: number; duracion: number } {
   return { segundos: sonido.seek ?? 0, duracion: sonido.duration ?? 0 };
 }
 
+/** Carga el MP3 de un tema si todavía no está. Se cumple con true si quedó listo. */
+export function cargarTema(escena: Phaser.Scene, tema: string): Promise<boolean> {
+  const clave = claveAudio(tema);
+  if (escena.cache.audio.exists(clave)) return Promise.resolve(true);
+  return new Promise((resolver) => {
+    escena.load.audio(clave, TEMAS[tema].archivo);
+    escena.load.once(Phaser.Loader.Events.COMPLETE, () => resolver(escena.cache.audio.exists(clave)));
+    escena.load.start();
+  });
+}
+
 /** Reproduce, pausa o retoma un tema. Devuelve una promesa que se cumple cuando empieza a sonar. */
-export function alternar(escena: Phaser.Scene, tema: string): Promise<void> {
+export async function alternar(escena: Phaser.Scene, tema: string): Promise<void> {
+  cortarFragmento();
   if (actual?.clave === tema) {
     if (actual.sonido.isPlaying) actual.sonido.pause();
     else if (actual.sonido.isPaused) actual.sonido.resume();
     else actual.sonido.play();
-    return Promise.resolve();
+    return;
   }
 
   actual?.sonido.stop();
   actual?.sonido.destroy();
   actual = null;
 
-  const clave = claveAudio(tema);
-  const empezar = () => {
-    const sonido = escena.sound.add(clave);
-    sonido.once(Phaser.Sound.Events.COMPLETE, () => sonido.stop());
-    actual = { clave: tema, sonido };
-    sonido.play();
-  };
+  if (!(await cargarTema(escena, tema))) return;
+  const sonido = escena.sound.add(claveAudio(tema));
+  sonido.once(Phaser.Sound.Events.COMPLETE, () => sonido.stop());
+  actual = { clave: tema, sonido };
+  sonido.play();
+}
 
-  if (escena.cache.audio.exists(clave)) {
-    empezar();
-    return Promise.resolve();
-  }
-  return new Promise((resolver) => {
-    escena.load.audio(clave, TEMAS[tema].archivo);
-    escena.load.once(Phaser.Loader.Events.COMPLETE, () => {
-      if (escena.cache.audio.exists(clave)) empezar();
-      resolver();
+/** Un fragmento de fondo (como el riff del inicio de una misión), aparte del reproductor. */
+let fragmento: { sonido: Phaser.Sound.BaseSound; fundido?: Phaser.Tweens.Tween } | null = null;
+
+const MS_FUNDIDO = 1500;
+
+/**
+ * Toca un pedazo de un tema con fundido de entrada y de salida.
+ * No suena si el reproductor del Phone ya está sonando.
+ */
+export async function tocarFragmento(
+  escena: Phaser.Scene,
+  tema: string,
+  opciones: { desde: number; duracion: number; volumen: number },
+): Promise<void> {
+  if (estaSonando() || !(await cargarTema(escena, tema)) || !escena.scene.isActive()) return;
+  cortarFragmento();
+
+  const sonido = escena.sound.add(claveAudio(tema), { volume: 0 }) as Phaser.Sound.WebAudioSound;
+  fragmento = { sonido };
+  sonido.play({ seek: opciones.desde, volume: 0 });
+  fragmento.fundido = escena.tweens.add({ targets: sonido, volume: opciones.volumen, duration: MS_FUNDIDO });
+  escena.time.delayedCall(Math.max(0, opciones.duracion * 1000 - MS_FUNDIDO), () => {
+    if (fragmento?.sonido !== sonido) return;
+    fragmento.fundido = escena.tweens.add({
+      targets: sonido,
+      volume: 0,
+      duration: MS_FUNDIDO,
+      onComplete: () => cortarFragmento(),
     });
-    escena.load.start();
   });
+}
+
+/** Corta el fragmento de fondo, si hay uno sonando. */
+export function cortarFragmento() {
+  if (!fragmento) return;
+  fragmento.fundido?.remove();
+  fragmento.sonido.stop();
+  fragmento.sonido.destroy();
+  fragmento = null;
 }
 
 export function formatoTiempo(segundos: number) {

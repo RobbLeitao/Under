@@ -40,9 +40,6 @@ function nombreDe(objeto: string) {
   return OBJETOS[objeto]?.nombre ?? objeto;
 }
 
-function conMayuscula(texto: string) {
-  return texto.charAt(0).toUpperCase() + texto.slice(1);
-}
 
 interface Boton {
   fondo: Phaser.GameObjects.Rectangle;
@@ -58,6 +55,8 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
   private verbos = new Map<Verbo, Boton>();
   private lugares: Phaser.GameObjects.Container[] = [];
   private objetivo: string | null = null;
+  /** Objeto del inventario elegido con un toque, para usarlo tocando algo en la escena. */
+  private elegido: string | null = null;
   private temporizador?: Phaser.Time.TimerEvent;
   private alCambiarInventario = () => this.dibujarInventario();
 
@@ -110,11 +109,28 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
     for (const boton of this.verbos.values()) {
       boton.texto.setColor(nombre ? TEXTO.claro : TEXTO.apagado);
     }
-    if (nombre) {
+    if (this.elegido) {
+      this.escribirLinea(`Usar ${nombreDe(this.elegido)} con… (tocá dónde)`).setColor(TEXTO.acento);
+    } else if (nombre) {
       this.escribirLinea(nombre).setColor(TEXTO.acento);
     } else {
       this.escribirLinea('Tocá algo o a alguien, o caminá por la vereda.').setColor(TEXTO.apagado);
     }
+  }
+
+  get objetoElegido() {
+    return this.elegido;
+  }
+
+  /** Elige (o suelta, con null) un objeto del inventario y lo remarca. */
+  elegirObjeto(clave: string | null) {
+    this.elegido = clave;
+    const objetos = inventario.lista();
+    this.lugares.forEach((lugar, i) => {
+      const marco = lugar.list[0] as Phaser.GameObjects.Rectangle;
+      marco.setStrokeStyle(4, clave && objetos[i] === clave ? COLOR.acento : COLOR.bordeBoton);
+    });
+    this.setObjetivo(this.objetivo);
   }
 
   private escribirLinea(texto: string) {
@@ -129,6 +145,7 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
   }
 
   private tocarVerbo(verbo: Verbo) {
+    if (this.elegido) this.elegirObjeto(null);
     if (!this.objetivo) {
       this.mostrarMensaje('Primero tocá algo o a alguien en la escena.', 2500);
       return;
@@ -182,9 +199,13 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
       const clave = objetos[i];
       if (clave) lugar.add(this.crearObjeto(clave));
     });
+    this.elegirObjeto(this.elegido && inventario.tiene(this.elegido) ? this.elegido : null);
   }
 
-  /** Ícono de un objeto del inventario: tocarlo dice qué es; arrastrarlo lo usa en la escena. */
+  /**
+   * Ícono de un objeto del inventario. Se usa de dos maneras: tocándolo (queda elegido)
+   * y después tocando algo en la escena, o arrastrándolo hasta ahí.
+   */
   private crearObjeto(clave: string) {
     const escena = this.scene;
     const textura = `objeto-${clave}`;
@@ -200,10 +221,11 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
     let arrastrando = false;
 
     icono.on('pointerup', () => {
-      if (!arrastrando) this.mostrarMensaje(conMayuscula(nombreDe(clave)) + '.', 2500);
+      if (!arrastrando) this.elegirObjeto(this.elegido === clave ? null : clave);
     });
     icono.on('dragstart', (puntero: Phaser.Input.Pointer) => {
       arrastrando = true;
+      if (this.elegido) this.elegirObjeto(null);
       this.temporizador?.remove();
       this.escribirLinea(`Usar ${nombreDe(clave)} con…`).setColor(TEXTO.acento);
       if (icono instanceof Phaser.GameObjects.Image) {

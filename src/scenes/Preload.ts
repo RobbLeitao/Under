@@ -11,6 +11,7 @@ const SPRITES: Record<string, { archivo: string; ancho: number; alto: number }> 
   'nikola-pasamontanas': { archivo: 'nikola-pasamontanas.svg', ancho: 12, alto: 30 },
   perro: { archivo: 'perro.svg', ancho: 15, alto: 8 },
   'perro-sin-pasamontanas': { archivo: 'perro-sin-pasamontanas.svg', ancho: 15, alto: 8 },
+  'monedas-piso': { archivo: 'monedas-piso.svg', ancho: 8, alto: 3 },
 };
 
 /** Los íconos del inventario miden 16x16 unidades. */

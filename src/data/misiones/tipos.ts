@@ -42,4 +42,6 @@ export interface Mision {
   apariencias: Apariencia[];
   /** Mensaje en la barra al terminar. */
   mensajeFinal: string;
+  /** Música de fondo de la entrada: un pedazo de un tema de data/temas.ts (en segundos). */
+  musicaEntrada?: { tema: string; desde: number; duracion: number; volumen: number };
 }

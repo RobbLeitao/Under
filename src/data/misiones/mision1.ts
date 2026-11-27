@@ -12,6 +12,9 @@ export const MISION_1: Mision = {
   marcaInicio: 'mision1-inicio',
   marcaFin: 'mision1-completa',
   mensajeFinal: 'Nuevo en tu Phone: un tema de Orate y la figurita de Nikola.',
+  // El riff que suena en los auriculares del jugador mientras llega Nikola. El MP3 tiene
+  // 12 s de silencio y una intro suave hasta 0:23; en 0:24 entra la banda con todo.
+  musicaEntrada: { tema: 'orate-psicopata', desde: 24, duracion: 12, volumen: 0.15 },
 
   reglas: [
     // Pasos 2 y 8: Nikola.
@@ -42,10 +45,17 @@ export const MISION_1: Mision = {
       respuesta: 'Nikola con su pasamontañas. Listo para el ensayo.',
     },
 
-    // Pasos 3, 5 y 6: el kiosco.
+    // Pasos 3, 5 y 6: el kiosco. Con monedas se compra dándoselas o hablándole.
     {
       punto: 'kiosco',
       accion: { usar: 'monedas' },
+      respuesta: { dialogo: 'kiosquero-galletitas' },
+      efectos: [{ quitar: 'monedas' }, { agregar: 'galletitas' }, { marcar: 'compro-galletitas' }],
+    },
+    {
+      punto: 'kiosco',
+      accion: 'hablar',
+      si: { tiene: ['monedas'] },
       respuesta: { dialogo: 'kiosquero-galletitas' },
       efectos: [{ quitar: 'monedas' }, { agregar: 'galletitas' }, { marcar: 'compro-galletitas' }],
     },

@@ -6,8 +6,9 @@ import { DIALOGOS, type ClaveHablante, type Dialogo } from '../data/dialogos';
 import { OBJETOS } from '../data/objetos';
 import { MISION_1 } from '../data/misiones/mision1';
 import type { Accion } from '../data/misiones/tipos';
-import { marcar, tieneMarca } from '../systems/estado';
+import { cumple, marcar, tieneMarca } from '../systems/estado';
 import { aplicarEfectos, buscarRegla, texturaDe } from '../systems/misiones';
+import { cortarFragmento, tocarFragmento } from '../systems/musica';
 import { BarraAcciones } from '../ui/BarraAcciones';
 import { reproducirDialogo } from '../ui/Vineta';
 
@@ -36,6 +37,7 @@ export class EsquinaBunker extends Phaser.Scene {
   private alLlegar?: () => void;
   /** Mientras hay un diálogo o una animación, las acciones nuevas se ignoran. */
   private ocupado = false;
+  private objetosEnEscena: { sprite: Phaser.GameObjects.Image; datos: (typeof DATOS.objetos)[number] }[] = [];
 
   constructor() {
     super('EsquinaBunker');
@@ -62,6 +64,16 @@ export class EsquinaBunker extends Phaser.Scene {
         .setName(p.clave);
     }
 
+    for (const datos of DATOS.objetos) {
+      const sprite = this.add
+        .image(datos.x * ESCALA, datos.y * ESCALA, datos.textura)
+        .setOrigin(0)
+        .setDepth((datos.y * ESCALA) + 1);
+      this.objetosEnEscena.push({ sprite, datos });
+      if (datos.brilla) this.destello(sprite);
+    }
+    this.actualizarObjetosEnEscena();
+
     this.pies = { x: DATOS.inicioJugador.x * ESCALA, y: DATOS.inicioJugador.y * ESCALA };
     this.jugador = this.add.image(0, 0, 'jugador').setOrigin(0.5, 1);
     this.actualizarJugador();
@@ -78,12 +90,13 @@ export class EsquinaBunker extends Phaser.Scene {
         .zone(z.x * ESCALA, z.y * ESCALA, z.ancho * ESCALA, z.alto * ESCALA)
         .setOrigin(0)
         .setInteractive({ useHandCursor: true })
-        .on('pointerdown', () => !this.ocupado && this.seleccionar(punto));
+        .on('pointerdown', () => this.tocarPunto(punto));
     }
 
     this.input.on('pointerdown', (puntero: Phaser.Input.Pointer, tocados: Phaser.GameObjects.GameObject[]) => {
       if (puntero.y >= ALTO_ESCENA || tocados.length > 0 || this.ocupado) return;
       this.seleccionado = null;
+      this.barra.elegirObjeto(null);
       this.barra.setObjetivo(null);
       this.caminarHacia(puntero.x, puntero.y);
     });
@@ -101,12 +114,11 @@ export class EsquinaBunker extends Phaser.Scene {
     }
   }
 
-  /**
-   * Paso 1 de la misión: Nikola llega apurado desde la derecha.
-   * PENDIENTE: acá suena un riff de fondo cuando Orate pase el archivo
-   * (public/assets/audio/); mientras tanto, silencio.
-   */
+  /** Paso 1 de la misión: suena un riff en los auriculares y Nikola llega apurado desde la derecha. */
   private entradaNikola() {
+    const musica = MISION_1.musicaEntrada;
+    if (musica) void tocarFragmento(this, musica.tema, musica);
+
     const nikola = this.children.getByName('nikola') as Phaser.GameObjects.Image;
     const destino = nikola.x;
     const piso = nikola.y;
@@ -138,6 +150,7 @@ export class EsquinaBunker extends Phaser.Scene {
   /** Abre el Phone encima de la escena, que queda en pausa hasta que se cierre. */
   private abrirPhone() {
     if (this.ocupado) return;
+    cortarFragmento();
     this.scene.launch('Phone', { volverA: this.scene.key });
     this.scene.pause();
   }
@@ -153,6 +166,17 @@ export class EsquinaBunker extends Phaser.Scene {
     if (!punto) return;
     this.seleccionar(punto);
     void this.actuar({ usar: objeto });
+  }
+
+  /** Tocar algo en la escena: si hay un objeto del inventario elegido, se usa ahí. */
+  private tocarPunto(punto: PuntoInteres) {
+    if (this.ocupado) return;
+    const objeto = this.barra.objetoElegido;
+    this.seleccionar(punto);
+    if (objeto) {
+      this.barra.elegirObjeto(null);
+      void this.actuar({ usar: objeto });
+    }
   }
 
   private seleccionar(punto: PuntoInteres) {
@@ -193,12 +217,35 @@ export class EsquinaBunker extends Phaser.Scene {
     if (terminaMision) this.barra.mostrarMensaje(MISION_1.mensajeFinal, 8000);
     else if (agregados.length) {
       const nombres = agregados.map((o) => OBJETOS[o]?.nombre ?? o).join(' y ');
-      this.barra.mostrarMensaje(`Conseguiste ${nombres}.`);
+      this.barra.mostrarMensaje(`Conseguiste ${nombres}. Tocá el objeto abajo y después dónde usarlo.`, 6000);
     }
     this.ocupado = false;
   }
 
+  private actualizarObjetosEnEscena() {
+    for (const { sprite, datos } of this.objetosEnEscena) sprite.setVisible(cumple(datos.si));
+  }
+
+  /** Un pixel claro que titila arriba del objeto cada tanto. */
+  private destello(sprite: Phaser.GameObjects.Image) {
+    const chispa = this.add
+      .rectangle(sprite.x + sprite.width / 2, sprite.y - ESCALA, ESCALA, ESCALA, 0xfff4c8)
+      .setOrigin(0)
+      .setDepth(sprite.depth)
+      .setVisible(false);
+    this.time.addEvent({
+      delay: 1800,
+      loop: true,
+      callback: () => {
+        if (!sprite.visible) return chispa.setVisible(false);
+        chispa.setVisible(true);
+        this.time.delayedCall(220, () => chispa.setVisible(false));
+      },
+    });
+  }
+
   private actualizarApariencias() {
+    this.actualizarObjetosEnEscena();
     for (const p of DATOS.personajes) {
       const sprite = this.children.getByName(p.clave) as Phaser.GameObjects.Image | null;
       sprite?.setTexture(texturaDe(MISION_1, p.clave, p.textura));

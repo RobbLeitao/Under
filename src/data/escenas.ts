@@ -1,5 +1,6 @@
 import type { Verbo } from './acciones';
 import type { ClaveDialogo, ClaveHablante } from './dialogos';
+import type { Condicion } from './misiones/tipos';
 
 /**
  * Datos de cada escena. Todas las medidas van en unidades de la grilla de 320x140
@@ -40,6 +41,18 @@ export interface PuntoInteres {
   respuestas: Partial<Record<Verbo, Respuesta>>;
 }
 
+/** Algo dibujado en la escena que aparece o desaparece según el avance (las monedas del piso). */
+export interface ObjetoEnEscena {
+  textura: string;
+  /** Esquina de arriba a la izquierda. */
+  x: number;
+  y: number;
+  /** Se ve mientras se cumpla. */
+  si: Condicion;
+  /** Un destello de vez en cuando, para que se note. */
+  brilla?: boolean;
+}
+
 export interface DatosEscena {
   fondo: string;
   carteles: Cartel[];
@@ -47,6 +60,7 @@ export interface DatosEscena {
   zonaCaminable: { xMin: number; xMax: number; yMin: number; yMax: number };
   inicioJugador: { x: number; y: number };
   personajes: Personaje[];
+  objetos: ObjetoEnEscena[];
   puntos: PuntoInteres[];
   /** Dónde salen las viñetas de quien habla sin sprite en la escena (arriba de la cabeza). */
   anclas: Partial<Record<ClaveHablante, { x: number; y: number }>>;
@@ -64,6 +78,10 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
   personajes: [
     { clave: 'perro', textura: 'perro', x: 169.5, y: 116 },
     { clave: 'nikola', textura: 'nikola', x: 198, y: 116 },
+  ],
+  objetos: [
+    // Paso 5: las monedas, en el piso abajo del banco de la parada.
+    { textura: 'monedas-piso', x: 23, y: 106, si: { sin: ['agarro-monedas'] }, brilla: true },
   ],
   // Respuestas fijas. Las que dependen del avance están en data/misiones/.
   puntos: [
