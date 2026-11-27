@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { ESCALA } from '../config';
+import { inventario } from '../systems/inventario';
 
 /** Sprites en SVG con su tamaño en unidades; se rasterizan ya escalados x4. */
 const SPRITES: Record<string, { archivo: string; ancho: number; alto: number }> = {
@@ -27,8 +28,11 @@ export class Preload extends Phaser.Scene {
   }
 
   create() {
-    // Solo en desarrollo: ?escena=Clave arranca directo en esa escena.
-    const atajo = import.meta.env.DEV ? new URLSearchParams(location.search).get('escena') : null;
+    // Solo en desarrollo: ?escena=Clave arranca directo en esa escena
+    // y ?objetos=a,b carga esos objetos en el inventario.
+    const parametros = import.meta.env.DEV ? new URLSearchParams(location.search) : null;
+    parametros?.get('objetos')?.split(',').forEach((o) => o && inventario.agregar(o));
+    const atajo = parametros?.get('escena');
     this.scene.start(atajo && this.scene.get(atajo) ? atajo : 'Inicio');
   }
 }

@@ -1,13 +1,18 @@
 import Phaser from 'phaser';
-import { ANCHO, ALTO_ESCENA, ALTO_BARRA, ESCALA } from '../config';
-import { ESQUINA_EL_BUNKER as DATOS } from '../data/escenas';
+import { ALTO_ESCENA, ESCALA } from '../config';
+import { ESQUINA_EL_BUNKER as DATOS, type PuntoInteres } from '../data/escenas';
+import { RESPUESTAS_POR_DEFECTO, type Verbo } from '../data/acciones';
+import { BarraAcciones } from '../ui/BarraAcciones';
 
 /** Velocidad del jugador, en píxeles por segundo. */
 const VELOCIDAD = 260;
 /** Cada cuánto alterna el paso (rebote de 4 px) mientras camina. */
 const MS_POR_PASO = 140;
 
-/** La esquina de El Bunker: fondo, jugador, Nikola y el perro. Se camina tocando el piso. */
+/**
+ * La esquina de El Bunker: fondo, jugador, Nikola y el perro. Se camina tocando el piso;
+ * al tocar a alguien o algo, el jugador se acerca y se elige una acción en la barra.
+ */
 export class EsquinaBunker extends Phaser.Scene {
   private jugador!: Phaser.GameObjects.Image;
   /** Posición de los pies del jugador; el sprite la sigue con el rebote del paso. */
@@ -15,6 +20,8 @@ export class EsquinaBunker extends Phaser.Scene {
   private caminata?: Phaser.Tweens.Tween;
   private pasos?: Phaser.Time.TimerEvent;
   private rebote = 0;
+  private barra!: BarraAcciones;
+  private seleccionado: PuntoInteres | null = null;
 
   constructor() {
     super('EsquinaBunker');
@@ -46,21 +53,41 @@ export class EsquinaBunker extends Phaser.Scene {
     this.jugador = this.add.image(0, 0, 'jugador').setOrigin(0.5, 1);
     this.actualizarJugador();
 
-    this.dibujarBarra();
+    this.barra = new BarraAcciones(this, {
+      alElegirVerbo: (verbo) => this.actuar(verbo),
+      alTocarPhone: () => this.barra.mostrarMensaje('El Phone todavía no prende.'),
+    });
+
+    for (const punto of DATOS.puntos) {
+      const z = punto.zona;
+      this.add
+        .zone(z.x * ESCALA, z.y * ESCALA, z.ancho * ESCALA, z.alto * ESCALA)
+        .setOrigin(0)
+        .setInteractive({ useHandCursor: true })
+        .on('pointerdown', () => this.seleccionar(punto));
+    }
 
     this.input.on('pointerdown', (puntero: Phaser.Input.Pointer, tocados: Phaser.GameObjects.GameObject[]) => {
       if (puntero.y >= ALTO_ESCENA || tocados.length > 0) return;
+      this.seleccionado = null;
+      this.barra.setObjetivo(null);
       this.caminarHacia(puntero.x, puntero.y);
     });
   }
 
-  /** Lugar provisorio de la barra de interfaz (tarea 4). */
-  private dibujarBarra() {
-    this.add.rectangle(0, ALTO_ESCENA, ANCHO, ALTO_BARRA, 0x15131a).setOrigin(0).setDepth(10000);
-    this.add.rectangle(0, ALTO_ESCENA, ANCHO, 4, 0x2b1d3a).setOrigin(0).setDepth(10000);
+  private seleccionar(punto: PuntoInteres) {
+    this.seleccionado = punto;
+    this.barra.setObjetivo(punto.nombre);
+    this.caminarHacia(punto.acercarse.x * ESCALA, punto.acercarse.y * ESCALA, false);
   }
 
-  private caminarHacia(x: number, y: number) {
+  /** Respuesta provisoria en la barra; con la tarea 5 pasa a las viñetas de diálogo. */
+  private actuar(verbo: Verbo) {
+    if (!this.seleccionado) return;
+    this.barra.mostrarMensaje(this.seleccionado.respuestas[verbo] ?? RESPUESTAS_POR_DEFECTO[verbo]);
+  }
+
+  private caminarHacia(x: number, y: number, marcar = true) {
     const z = DATOS.zonaCaminable;
     const destinoX = Phaser.Math.Clamp(x, z.xMin * ESCALA, z.xMax * ESCALA);
     const destinoY = Phaser.Math.Clamp(y, z.yMin * ESCALA, z.yMax * ESCALA);
@@ -71,7 +98,7 @@ export class EsquinaBunker extends Phaser.Scene {
     const distancia = Phaser.Math.Distance.Between(this.pies.x, this.pies.y, fx, fy);
     if (distancia < ESCALA) return;
 
-    this.marcarDestino(fx, fy);
+    if (marcar) this.marcarDestino(fx, fy);
     this.caminata?.stop();
     this.pasos ??= this.time.addEvent({
       delay: MS_POR_PASO,
