@@ -791,6 +791,10 @@ export abstract class EscenaJuego extends Phaser.Scene {
     if (regla?.despues) {
       agregados.push(...this.efectos(regla.despues.efectos));
       if (regla.despues.respuesta) await this.dialogo(this.comoDialogo(regla.despues.respuesta));
+      if (regla.despues.secuencia) {
+        await this.secuencia(regla.despues.secuencia);
+        if (!this.scene.isActive()) return;
+      }
     }
 
     if (termina && regla && !regla.secuencia) {

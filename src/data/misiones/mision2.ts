@@ -6,7 +6,7 @@ import type { Mision } from './tipos';
  * VEREDA_PERRIER en data/escenas.ts). Cada objeto se usa solo; no se combinan objetos.
  *
  * Marcas de avance: jota-salio, jota-conto, raulo-conto-llave, jota-dio-cuerda, pesco-llave,
- * raulo-abrio, mision2-completa, mision2-cierre (ya se vio el cierre en la vereda) y
+ * raulo-abrio, mision2-completa, jota-entro (volvió a entrar para el show), mision2-cierre (ya se vio el cierre en la vereda) y
  * flyer-exiliado-retirado (el jugador se fue de la vereda después del show).
  */
 export const MISION_2: Mision = {
@@ -32,7 +32,9 @@ export const MISION_2: Mision = {
         { recompensa: 'tema:exiliado-el-hombre-en-el-cuadro' },
         { recompensa: 'figurita:jota' },
       ],
-      secuencia: 'show',
+      // Jota termina de hablar, entra por la puerta y arranca el show.
+      secuencia: 'jota-entra',
+      despues: { efectos: [{ marcar: 'jota-entro' }], secuencia: 'show' },
     },
     {
       punto: 'jota',
@@ -45,7 +47,9 @@ export const MISION_2: Mision = {
         { recompensa: 'tema:exiliado-el-hombre-en-el-cuadro' },
         { recompensa: 'figurita:jota' },
       ],
-      secuencia: 'show',
+      // Jota termina de hablar, entra por la puerta y arranca el show.
+      secuencia: 'jota-entra',
+      despues: { efectos: [{ marcar: 'jota-entro' }], secuencia: 'show' },
     },
     // Paso 6: después de que Raulo contó lo de la llave, Jota da la cuerda cortada.
     {

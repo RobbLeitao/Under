@@ -27,8 +27,8 @@ export interface Regla {
    * vereda, Raulo va al depósito, el show). La escena la reconoce por este nombre.
    */
   secuencia?: string;
-  /** Lo que pasa después de la secuencia: más diálogo y más efectos. */
-  despues?: { respuesta?: Respuesta; efectos?: Efecto[] };
+  /** Lo que pasa después de la secuencia: más efectos, más diálogo y otra secuencia. */
+  despues?: { efectos?: Efecto[]; respuesta?: Respuesta; secuencia?: string };
 }
 
 /** Cambia el sprite de un personaje según el avance. */

@@ -35,6 +35,9 @@ export class VeredaPerrier extends EscenaJuego {
   }
 
   private async cierre() {
+    // Si el juego se cerró justo cuando Jota entraba, en la vereda ya no está.
+    marcar('jota-entro');
+    this.actualizarApariencias();
     this.ocupado = true;
     this.enDialogo = true;
     this.cameras.main.fadeIn(600, 0, 0, 0);
@@ -55,10 +58,11 @@ export class VeredaPerrier extends EscenaJuego {
   protected async secuencia(nombre: string) {
     if (nombre === 'jota-sale') await this.automatico(this.jotaSale());
     else if (nombre === 'deposito') await this.automatico(this.rauloVaAlDeposito());
+    else if (nombre === 'jota-entra') await this.automatico(this.jotaEntra());
     else if (nombre === 'show') await this.automatico(this.irAlShow());
   }
 
-  /** Paso 3: Jota sale por la puerta, detrás de Raulo, y camina hasta delante del ventanal. */
+  /** Paso 3: Jota sale por la puerta y camina, por detrás de Raulo, hasta delante del ventanal. */
   private async jotaSale() {
     const jota = this.sprite('jota');
     const datos = this.datos.personajes.find((p) => p.clave === 'jota');
@@ -67,6 +71,14 @@ export class VeredaPerrier extends EscenaJuego {
     jota.setAlpha(0).setVisible(true);
     await this.tween({ targets: jota, alpha: 1, duration: MS_PUERTA });
     await this.caminarPersonaje(jota, 'jota', datos.x, datos.y);
+  }
+
+  /** Paso 10: con las cuerdas nuevas, Jota camina hasta la puerta y entra a cambiar la cuarta. */
+  private async jotaEntra() {
+    const jota = this.sprite('jota');
+    if (!jota) return;
+    await this.caminarPersonaje(jota, 'jota', X_PUERTA, Y_PUERTA);
+    await this.tween({ targets: jota, alpha: 0, duration: MS_PUERTA });
   }
 
   /** Paso 9: Raulo entra al depósito por la puerta y vuelve. */
