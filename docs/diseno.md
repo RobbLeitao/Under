@@ -1,6 +1,6 @@
 # UNDER: documento de diseño
 
-Copia del documento de diseño trabajado en Claude Docs (27 de noviembre de 2026). Si cambia allá, se actualiza acá.
+Copia del documento de diseño de Claude Docs, que es la fuente de verdad. Se actualiza acá en un PR cada vez que se cierra una misión; las versiones están en el **Historial de cambios**, al final.
 
 ## Concepto
 
@@ -18,7 +18,7 @@ Aventura gráfica de "apuntar y hacer clic", con referencias como Monkey Island 
 - **El protagonista es público, no músico.** Es alguien que escucha el género y se cruza con músicos under en la calle. Su nombre lo elige quien juega, con un campo de texto guardado en el dispositivo (el inicio de sesión con OAuth queda para más adelante). Ejemplo: un pibe de 16 años que escucha Slipknot se cruza con Nikola, cantante y guitarrista de Orate, que le cuenta que tocan tal día.
 - **Mapa de Mar del Plata** con los venues donde tocan las bandas.
 - **Misiones simples** que aumentan la dificultad de a poco.
-- **Diálogos flotantes, como en Thimbleweed Park:** el texto aparece sobre la cabeza del que habla, en su color, con sonidos balbuceados en lugar de voces. Las voces reales de los músicos quedan para una versión futura.
+- **Diálogos flotantes, como en Thimbleweed Park:** el texto aparece sobre la cabeza del que habla, en su color y sin caja, con sonidos balbuceados en lugar de voces. Las voces reales de los músicos quedan para una versión futura.
 - **Guiños locales** que solo entiende la escena.
 
 ### Skins
@@ -62,7 +62,7 @@ La demo tiene **2 venues, 5 bandas y 3 misiones**. Rob habla con las bandas y lo
 
 ### Misiones (borrador)
 
-Las misiones son de público: el jugador no toca, sino que ayuda y descubre.
+Las misiones son de público: el jugador no toca, sino que ayuda y descubre. Los nombres de venues y bandas se completan cuando confirmen.
 
 1. **El encuentro (fácil).** En la calle, el jugador se cruza con Nikola, de Orate, que perdió su pasamontañas camino al ensayo. Lo perdió en la misma cuadra de El Bunker, cerca del kiosco. Recompensa: un tema de Orate en el Phone del jugador y la invitación a escucharlos en {plataforma}.
 2. **La cuarta cuerda: el show de Exiliado en Vinoteca Perrier (media).** A Jota se le corta la cuarta cuerda del bajo antes del show, y el jugador consigue un repuesto para que Exiliado pueda tocar. Recompensa: la figurita de Jota y un tema de Exiliado en el Phone. Guion completo más abajo. Abismal y Peke pasan a otra misión, a definir.
@@ -109,28 +109,34 @@ La demo mide un recorrido de cinco pasos, de abrir el juego a interesarse por un
 
 **Propuesta:** PostHog para los eventos del juego, más enlaces con UTM en cada publicación de redes. Del lado de las bandas, comparar sus oyentes en Spotify for Artists antes y después de lanzar la demo.
 
-Como el público incluye menores, la medición es anónima: los eventos no se asocian al nombre ni a la cuenta de quien juega.
+Como el público incluye menores, la medición es anónima: los eventos no se asocian al nombre ni a la cuenta de quien juega. Si más adelante se suma el inicio de sesión con OAuth, el juego pasa a guardar datos personales, y eso pide una política de privacidad y cuidado extra con los menores de 18. Para la demo, el campo de nombre guardado en el dispositivo es lo más simple.
 
-## Forma de trabajo
+## Forma de trabajo y próximos pasos
 
-El diseño pasa por Claude Design y el desarrollo por Claude Code en la terminal (Warp). Rob define personajes, bandas y venues, y los suma de a poco.
+**Roles:** Rob decide, prueba y consigue los permisos de bandas y venues; define personajes, bandas y venues, y los suma de a poco. Claude (en el chat) se ocupa del diseño en Claude Design, del negocio y de la interacción con Claude Code: escribe los pedidos con criterios de aceptación y revisa lo que entrega. Claude Code desarrolla en la terminal (Warp) y sube los cambios al repositorio, una rama y un PR por tarea.
 
-**Stack:** Phaser con TypeScript para la demo web, empaquetado después con Capacitor como app de Android e iOS.
+**Stack:** Phaser con TypeScript para la demo web, empaquetado después con Capacitor como app de Android e iOS. Repositorio: github.com/RobbLeitao/Under.
 
-- [ ] Confirmar los 2 venues y las 5 bandas, con permiso para usar nombres, imagen y música, y pedirles los archivos de sus temas el link donde quieren que los escuchen (Spotify, YouTube, Bandcamp u otra plataforma) y su logo para el álbum
+**Ritmo:** bloques fijos de dos o tres horas por semana, con el trabajo pendiente en el tablero de UNDER en Trello.
+
+- [ ] Confirmar los 2 venues y las 5 bandas, con permiso para usar nombres, imagen y música, y pedirles los archivos de sus temas, el link donde quieren que los escuchen (Spotify, YouTube, Bandcamp u otra plataforma) y su logo para el álbum
 - [x] Escribir la misión 1 completa: escenas, diálogos, objetos y acertijo
 - [x] Definir el estilo visual en Claude Design: paleta, un personaje, un fondo
 - [ ] Armar el prototipo de la misión 1 en Phaser y publicarlo en web
 - [ ] Integrar la música y la medición
 - [ ] Probar la misión 1 con 10 a 15 personas del público objetivo
 - [ ] Completar las misiones 2 y 3 y lanzar la demo por redes
+- [ ] Definir de antemano qué resultado haría seguir, cambiar o frenar
+
+**Estado al 28/11:** la pantalla de inicio, la misión 1 y la misión 2 están terminadas en el juego. Lo que sigue está en el tablero de Trello (ver el Historial de cambios). El seguimiento de recursos está en la planilla "UNDER: qué necesita cada misión".
 
 ## Riesgos y temas abiertos
 
-- **Arte y animación:** es la parte más costosa de una aventura gráfica. Los sprites animados en pixel art pueden necesitar una herramienta específica, como Aseprite, o un ilustrador.
-- **Estética y público joven:** el pixel art y la aventura gráfica pueden atraer más a quienes las jugaron de chicos.
+- **Arte y animación:** es la parte más costosa de una aventura gráfica. Claude Design sirve para definir el estilo y las pantallas, pero los sprites animados en pixel art pueden necesitar una herramienta específica, como Aseprite, o un ilustrador.
+- **Estética y público joven:** el pixel art y la aventura gráfica pueden atraer más a quienes las jugaron de chicos. La prueba con 10 a 15 personas lo va a mostrar.
 - **Derechos de la música:** las bandas tienen que autorizar el uso de sus temas. Si están registrados en SADAIC, hay que averiguar cómo se autoriza ese uso antes de publicar.
 - **Permisos de personas y lugares:** cada músico y venue tiene que aceptar aparecer, idealmente por escrito.
+- **La hipótesis puede no cumplirse:** si la gente juega pero no escucha ni va a shows, la distribución o el formato pueden cambiar.
 - **Sustentabilidad:** a definir. Opciones: publicidad, compras dentro del juego o venta de espacios en el juego a comercios y venues.
 
 ## Misión 1: "El pasamontañas perdido" (guion)
@@ -346,8 +352,15 @@ Los diálogos de Raulo y de Jota se ajustan con ellos, para que suenen como habl
 
 - **Jota es diestro:** pulsa con la mano derecha y pisa con la izquierda, con el mástil hacia su izquierda. Su sprite **nunca se espeja**, ni al caminar hacia la izquierda, porque quedaría zurdo.
 - **Todos los que caminan tienen animación de caminar y de hablar**, con el mismo esquema de 4 cuadros que el jugador y Nikola.
-- **El flyer de la pared es un objeto aparte del fondo:** el de esta misión es el de Exiliado. Sin misión en curso, la pared queda sin flyer.
+- **El flyer de la pared es un objeto aparte del fondo:** el de esta misión es el de Exiliado, con su símbolo. Sin misión en curso, la pared queda sin flyer.
 
 ### Temas abiertos
 
 - Pendiente para más adelante: la misión de Abismal y Peke.
+
+## Historial de cambios
+
+Una línea por hito, de lo más nuevo a lo más viejo. Cada versión del documento se copia a `docs/diseno.md` del repo en un PR cuando se cierra una misión, así el historial de git guarda cada versión. El detalle fino de cada cambio queda en las revisiones del documento.
+
+- **v2 · 28/11/2026 · Misión 2, "La cuarta cuerda".** Guion y diálogos con Raulo y Jota (Exiliado), vereda de Vinoteca Perrier con y sin misión, flyer de Exiliado en la pared, salón con el show de 10 segundos y botón Saltar, paso de una pantalla a otra por los bordes. Jota es diestro y nunca se espeja. Misión 2 jugable en el juego. Tablero de UNDER en Trello. Primera sincronización completa entre el documento y el repo.
+- **v1 · 27/11/2026 · Misión 1, "El pasamontañas perdido".** Concepto, público y medición. Estilo visual con Thimbleweed Park como norte: personajes cabezones, contorno de color y diálogos flotantes sin viñeta. Logo de El Bunker en 8 bits, kiosco nuevo y cartel de Av. Independencia. Pantalla de inicio, pausa, teclado y misión 1 jugables en el juego.
