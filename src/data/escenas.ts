@@ -119,7 +119,11 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
   ],
   // La parada de colectivo (techo, postes, vidrio, banco y cartel), separada del fondo con
   // scripts/separar-parada.py. Se apoya en la vereda en y 110.
-  decorados: [{ textura: 'parada-colectivo', x: 4, y: 60, base: 110 }],
+  decorados: [
+    { textura: 'parada-colectivo', x: 4, y: 60, base: 110 },
+    // La farola está al borde de la vereda, casi sobre el asfalto (el pie, en y 116).
+    { textura: 'farola-esquina', x: 231, y: 28, base: 116 },
+  ],
   objetos: [
     // Paso 5: las monedas, en el piso abajo del banco de la parada.
     { textura: 'monedas-piso', x: 22, y: 107, si: { sin: ['agarro-monedas'] }, brilla: true },

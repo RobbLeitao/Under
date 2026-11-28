@@ -33,6 +33,8 @@ export class Preload extends Phaser.Scene {
     this.load.svg('fondo-esquina-el-bunker', 'assets/escenas/esquina-el-bunker.svg');
     // La parada de colectivo, aparte del fondo (58x50 unidades).
     this.load.svg('parada-colectivo', 'assets/escenas/parada-colectivo.svg', { width: 58 * ESCALA, height: 50 * ESCALA });
+    // La farola, al borde de la vereda, con el cartel de Av. Independencia: tapa al jugador cuando pasa por detrás (77x89 unidades).
+    this.load.svg('farola-esquina', 'assets/escenas/farola-esquina.svg', { width: 77 * ESCALA, height: 89 * ESCALA });
     for (const [clave, s] of Object.entries(SPRITES)) {
       this.load.svg(clave, `assets/sprites/${s.archivo}`, {
         width: s.ancho * ESCALA,
