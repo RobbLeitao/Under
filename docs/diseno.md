@@ -58,14 +58,14 @@ La demo tiene **2 venues, 5 bandas y 3 misiones**. Rob habla con las bandas y lo
 | Avtomata | Modern death metal | El S | Cantante |
 | Exiliado | Rock metal alternativo | Jota | Bajista |
 
-**Venues:** Vinoteca Perrier y Teatro Vorterix. Sala de ensayo de todas las bandas, por ahora: El Bunker - Estudio y Salas de Ensayo.
+**Venues:** Vinoteca Perrier y Teatro Vorterix. En Perrier está Raulo, el encargado (persona real): aparece en todas las misiones que pasan por ahí y puede ser protagonista de más de una. En la pared de Perrier hay un flyer que cambia con cada misión (la banda que toca esa noche); si el jugador pasa por la vereda y no hay misión en curso, no hay flyer. Sala de ensayo de todas las bandas, por ahora: El Bunker - Estudio y Salas de Ensayo.
 
 ### Misiones (borrador)
 
 Las misiones son de público: el jugador no toca, sino que ayuda y descubre.
 
 1. **El encuentro (fácil).** En la calle, el jugador se cruza con Nikola, de Orate, que perdió su pasamontañas camino al ensayo. Lo perdió en la misma cuadra de El Bunker, cerca del kiosco. Recompensa: un tema de Orate en el Phone del jugador y la invitación a escucharlos en {plataforma}.
-2. **La prueba de sonido en Vinoteca Perrier (media).** Para entrar a la prueba de sonido de la tarde, el jugador tiene que resolver un problema del encargado del lugar. Adentro conoce a Peke, de Abismal, y a Jota, de Exiliado. Recompensa: sus figuritas del álbum y sus temas en el Phone.
+2. **La cuarta cuerda: el show de Exiliado en Vinoteca Perrier (media).** A Jota se le corta la cuarta cuerda del bajo antes del show, y el jugador consigue un repuesto para que Exiliado pueda tocar. Recompensa: la figurita de Jota y un tema de Exiliado en el Phone. Guion completo más abajo. Abismal y Peke pasan a otra misión, a definir.
 3. **La noche del show en Teatro Vorterix (difícil).** Tocan Kainoas y Avtomata, pero antes del show algo falla: un cable, un pedal o un músico que no llega. El jugador ayuda a FAT y a El S combinando objetos y pistas de las misiones anteriores. Recompensa: la música de las 5 bandas y el álbum completo.
 
 ## Música y puente con el mundo real
@@ -200,3 +200,155 @@ Al terminar aparece un panel de **¡Misión cumplida!** con lo que se ganó, el 
 ### Eventos para medir
 
 Inicio de la misión, cada objeto conseguido, misión terminada, tema de Orate reproducido en el Phone y toque en "escuchanos en {plataforma}".
+
+## Misión 2: "La cuarta cuerda" (guion)
+
+Una misión media, de 8 a 12 minutos, en la Vinoteca Perrier, la noche de un show de **Exiliado**. Presenta a **Jota**, el bajista, y a **Raulo**, el encargado de Perrier, y termina con el jugador en primera fila. La dificultad sube respecto de la misión 1 porque hay más pasos y una pista que hay que leer al mirar un objeto. No se combinan objetos: cada uno se usa solo.
+
+Arte en el canvas de Claude Design: "Misión 2 · Vereda de Perrier", "Vereda de Perrier sin misión", "Misión 2 · El show de Exiliado, adentro de Perrier", "Personajes de la misión 2" y "Animaciones de la misión 2". Medidas y archivos en `docs/estilo-visual.md`.
+
+### Cómo se llega
+
+**Caminando.** Las escenas están una al lado de la otra: al llegar al borde derecho de la esquina de El Bunker, el jugador aparece en la vereda de Perrier, entrando por la izquierda. Al llegar al borde izquierdo de la vereda de Perrier, vuelve a la esquina de El Bunker, entrando por la derecha. En la misión 1, el jugador entra a la esquina por la izquierda (más adelante, desde una escena de inicio, como una plaza).
+
+Se puede ir a Perrier en cualquier momento. Mientras la misión 1 no esté terminada, la vereda está **sin misión**: no hay flyer, el ventanal está apagado, Raulo dice que todavía no abrieron y la misión 2 no arranca. Jota sale a la vereda recién después de devolverle el pasamontañas a Nikola.
+
+### Escenas
+
+1. **La vereda de Perrier, al anochecer.** La puerta de madera con Raulo, el ventanal por el que se ve a Exiliado probando, el flyer del show pegado en la pared de ladrillos ("HOY EXILIADO", con el símbolo de la banda), la chapa con el número 2051 sobre la puerta, la farola al borde de la vereda y una rejilla de desagüe en el cordón.
+2. **El salón de Perrier, durante el show.** Escena corta, sin control del jugador. Techo bajo de vigas, todo bañado en luz roja y rosa, humo naranja, Jota tocando y el resto de Exiliado en siluetas, y el público de espaldas.
+
+### Paso a paso
+
+1. **Llegar.** El jugador llega caminando desde la esquina de El Bunker. Por el ventanal se ve a Exiliado probando sonido.
+2. **Hablar con Raulo.** Todavía no abrieron: están probando.
+3. **Jota sale a la vereda** (escena automática, al terminar esa charla). Se le cortó la cuarta cuerda en la prueba, no trajo repuesto y las casas de música ya cerraron. Sin la cuarta no hay show.
+4. **Hablar con Raulo otra vez.** Hace un mes un bajista se olvidó un estuche en el depósito, capaz con cuerdas. Pero se le cayó la llave por la rejilla. "Si me la sacás, te dejo pasar."
+5. **Mirar la rejilla.** La llave está en un llavero con una argolla, abajo de todo. Con la mano no se llega.
+6. **Pedirle algo a Jota.** El jugador le pide algo largo y finito para pescar la llave, y Jota le da la **cuerda cortada**.
+7. **Mirar la cuerda.** La pista: "La punta quedó enrulada. Parece un gancho."
+8. **Pescar la llave.** Usar la cuerda en la rejilla engancha la argolla: el jugador tiene la **llave del depósito**.
+9. **Dar la llave a Raulo.** Abre el depósito, vuelve con un **juego de cuerdas** de bajo, se lo da al jugador y lo deja pasar.
+10. **Dar las cuerdas a Jota.** Cambia la cuarta y Exiliado arranca el show. El show es una escena corta adentro del salón, de unos 10 segundos y sin control del jugador, con el fragmento del tema de Exiliado que el jugador gana, como en la misión 1.
+11. **De vuelta en la vereda.** Fundido a negro y el jugador aparece en la vereda, solo con Raulo en la puerta, con la misión cumplida. Cierre y recompensas.
+
+### Diálogos (borrador)
+
+**Cómo hablan.** Raulo es tranquilo, de pocas palabras, seco y con humor; le dice "pendejo" al jugador. Jota está desesperado por el show y habla rápido. El jugador habla en blanco, Raulo en amarillo (`#FFD45A`) y Jota en lila (`#C9A0FF`).
+
+**Antes de terminar la misión 1** (sin flyer en la pared y el ventanal apagado)
+
+- **Raulo:** "Todavía no abrimos, pendejo. Pasá más tarde."
+- **Mirar el ventanal:** "Está oscuro. No hay nadie."
+
+**1. Llegar y hablar con Raulo**
+
+- **Jugador:** "Buenas. ¿Se puede pasar?"
+- **Raulo:** "Todavía no abrimos. Están probando sonido."
+- **Raulo:** "Volvé a la noche, que toca Exiliado."
+
+**2. Jota sale a la vereda** (escena automática, al terminar esa charla)
+
+- **Jota:** "¡Noooo! ¡Se me cortó la cuarta!"
+- **Jota:** "Y no traje repuesto… Las casas de música ya cerraron."
+- **Jota:** "Sin la cuarta no hay show, Raulo."
+- **Raulo:** "Tranquilo. Dejame pensar."
+
+**3. Hablar con Jota**
+
+- **Jugador:** "¿Te puedo ayudar?"
+- **Jota:** "Si me conseguís una cuerda de bajo, te hago un monumento."
+- **Jota:** "Pero a esta hora no la consigue nadie."
+
+**4. Hablar con Raulo otra vez**
+
+- **Raulo:** "Hace un mes un bajista se olvidó un estuche en el depósito."
+- **Raulo:** "Capaz que tiene cuerdas. Pero la llave del depósito se me cayó por la rejilla."
+- **Raulo:** "Si me la sacás, te dejo pasar."
+- **Jugador:** "Hecho."
+
+**5. La rejilla**
+
+- **Mirar la rejilla:** "Allá abajo brilla un llavero con una argolla. Con la mano no llego."
+- **Agarrar la rejilla:** "No entra ni un dedo."
+
+**6. Pedirle algo a Jota** (después del paso 4)
+
+- **Jugador:** "Necesito algo largo y finito para pescar una llave."
+- **Jota:** "¿Largo y finito? Tomá la cuarta. Total, ya fue."
+- El jugador recibe la **cuerda cortada**.
+
+**7. La cuerda**
+
+- **Mirar la cuerda:** "La punta quedó enrulada. Parece un gancho."
+- **Usar la cuerda en la rejilla:** "Un poquito más… ¡La tengo!" El jugador recibe la **llave del depósito**.
+- **Usar la cuerda en otra cosa:** "No, eso no."
+
+**8. Darle la llave a Raulo**
+
+- **Raulo:** "Mirá vos. Esperá acá."
+- (Raulo entra y vuelve.)
+- **Raulo:** "Había un juego de cuerdas nuevo. Tomá, dáselo vos."
+- **Raulo:** "Y pasá, que te lo ganaste."
+- El jugador recibe el **juego de cuerdas**.
+
+**9. Darle las cuerdas a Jota**
+
+- **Jota:** "¡Son de bajo! ¡Y nuevas!"
+- **Jota:** "Dame dos minutos y arrancamos."
+- (Pasa al salón.)
+
+**10. El show, en el salón**
+
+- **Jota, desde el escenario:** "¡Buenas noches, Perrier! ¡Somos Exiliado!"
+- (Suenan unos 10 segundos del tema de Exiliado que el jugador gana en esta misión, desde el archivo que pasa la banda. La escena dura lo que dura ese fragmento.)
+- **Jota, al final:** "Che, {jugador}, sin vos no tocábamos. Tomá, escuchanos en {plataforma}."
+
+**Saltar la escena.** Durante el show hay un botón **Saltar** arriba a la derecha, en el lugar del de pausa (mínimo 44 px de alto), y Esc hace lo mismo. Saltar lleva directo a la vereda con Raulo y la misión cumplida: el tema, la figurita y el enlace se ganan igual.
+
+**11. De vuelta en la vereda** (después del fundido, solo Raulo en la puerta)
+
+- **Raulo:** "Buena banda, ¿no? Volvé cuando quieras, pendejo."
+- El flyer sigue en la pared hasta que el jugador se va de la pantalla. La próxima vez que pase, ya no está.
+
+**Mirar y agarrar en la vereda**
+
+- **Raulo:** "Raulo, el encargado. Es enorme, pero tiene cara de buen tipo."
+- **Jota:** "Jota, el bajista de Exiliado. Está desesperado."
+- **El bajo de Jota:** "Un bajo de cuatro cuerdas. Bueno, de tres."
+- **El flyer:** "Hoy toca Exiliado. Está bueno el símbolo."
+- **Agarrar el flyer:** "Mejor lo dejo. Si no, ¿cómo se enteran?"
+- **El ventanal:** "Exiliado está probando. Se escucha hasta acá afuera."
+- **La puerta:** "Una puerta de madera de las de antes."
+- **La chapa:** "Perrier, 2051. Desde 1992."
+- **Hablar con Raulo después de darle la llave:** "Pasá, pasá."
+
+Los diálogos de Raulo y de Jota se ajustan con ellos, para que suenen como hablan.
+
+### Recompensas
+
+- La **figurita de Jota** en el álbum.
+- Un **tema de Exiliado** en el Phone, desde el archivo que pasa la banda.
+- El **enlace para escuchar a Exiliado** en {plataforma}.
+
+### Recursos necesarios
+
+| Tipo | Elementos |
+| --- | --- |
+| Fondos | La vereda de Perrier con show y sin misión; el salón durante el show |
+| Decorados | La farola al borde de la vereda (tapa al jugador cuando pasa por detrás) |
+| Objeto en escena | El flyer de Exiliado, solo mientras hay misión |
+| Personajes | Jota y Raulo, con animaciones de caminar y de hablar |
+| Objetos | Cuerda cortada, llave del depósito (con argolla), juego de cuerdas de bajo |
+| Música | Un tema de Exiliado (y el fragmento de unos 10 segundos para el show) |
+
+### Notas para el arte y el desarrollo
+
+- **Jota es diestro:** pulsa con la mano derecha y pisa con la izquierda, con el mástil hacia su izquierda. Su sprite **nunca se espeja**, ni al caminar hacia la izquierda, porque quedaría zurdo.
+- **Todos los que caminan tienen animación de caminar y de hablar**, con el mismo esquema de 4 cuadros que el jugador y Nikola.
+- **El flyer de la pared es un objeto aparte del fondo:** el de esta misión es el de Exiliado. Sin misión en curso, la pared queda sin flyer.
+
+### Temas abiertos
+
+- El tema de Exiliado y su fragmento de 10 segundos: falta el archivo.
+- Pendiente para más adelante: la misión de Abismal y Peke.
