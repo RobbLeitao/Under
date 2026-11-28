@@ -26,6 +26,8 @@ export interface Personaje {
   cuerpo?: { mitadAncho: number; mitadFondo: number };
   /** Si está, el personaje solo está en la escena mientras se cumpla. */
   si?: Condicion;
+  /** Nunca se espeja, ni al caminar hacia la izquierda. Jota es diestro: espejado quedaría zurdo. */
+  sinEspejar?: boolean;
 }
 
 /**
@@ -211,8 +213,15 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
 };
 
 /** Marca de avance con la que la vereda de Perrier pasa a tener misión (flyer y ventanal encendido). */
-const CON_MISION: Condicion = { con: ['mision1-completa'] };
+const CON_MISION: Condicion = { con: ['mision1-completa'], sin: ['flyer-exiliado-retirado'] };
 const SIN_MISION: Condicion = { sin: ['mision1-completa'] };
+/**
+ * Después del show, cuando el jugador se fue de la vereda: el flyer ya no está y no hay misión
+ * en curso, así que la vereda vuelve a estar sin misión (ventanal apagado).
+ */
+const DESPUES_DEL_SHOW: Condicion = { con: ['flyer-exiliado-retirado'] };
+/** Jota está en la vereda desde que sale (paso 3) hasta el show. */
+const JOTA_EN_LA_VEREDA: Condicion = { con: ['jota-salio'], sin: ['mision2-completa'] };
 
 /**
  * La vereda de Vinoteca Perrier, a la derecha de la esquina de El Bunker. Sin la misión 1
@@ -221,7 +230,10 @@ const SIN_MISION: Condicion = { sin: ['mision1-completa'] };
 export const VEREDA_PERRIER: DatosEscena = {
   clave: 'VeredaPerrier',
   fondo: 'fondo-vereda-perrier',
-  fondoSegun: [{ textura: 'fondo-vereda-perrier-sin-mision', si: SIN_MISION }],
+  fondoSegun: [
+    { textura: 'fondo-vereda-perrier-sin-mision', si: SIN_MISION },
+    { textura: 'fondo-vereda-perrier-sin-mision', si: DESPUES_DEL_SHOW },
+  ],
   carteles: [],
   // La fachada se apoya en y 100 y el cordón empieza en y 117. Atrás de Raulo (pies en 108)
   // queda una fila para rodearlo.
@@ -230,6 +242,16 @@ export const VEREDA_PERRIER: DatosEscena = {
   personajes: [
     // Raulo, parado frente a la puerta de madera.
     { clave: 'raulo', textura: 'raulo', x: 164, y: 108, cuerpo: { mitadAncho: 9, mitadFondo: 3 } },
+    // Jota, delante del ventanal, desde que sale a la vereda hasta el show. Diestro: nunca se espeja.
+    {
+      clave: 'jota',
+      textura: 'jota',
+      x: 124,
+      y: 113,
+      cuerpo: { mitadAncho: 9, mitadFondo: 3 },
+      si: JOTA_EN_LA_VEREDA,
+      sinEspejar: true,
+    },
   ],
   decorados: [
     // La farola al borde de la vereda (el pie, en y 116): tapa al jugador cuando pasa por detrás.
@@ -240,6 +262,28 @@ export const VEREDA_PERRIER: DatosEscena = {
     { textura: 'flyer-exiliado', x: 186, y: 55, si: CON_MISION },
   ],
   puntos: [
+    // El bajo va antes que Jota: donde se superponen, gana el bajo.
+    {
+      clave: 'bajo',
+      nombre: 'el bajo de Jota',
+      zona: { x: 107, y: 88, ancho: 14, alto: 11 },
+      acercarse: { x: 100, y: 113 },
+      respuestas: {
+        mirar: 'Un bajo de cuatro cuerdas. Bueno, de tres.',
+        agarrar: 'Ni se me ocurre. Es su bajo.',
+      },
+      si: JOTA_EN_LA_VEREDA,
+    },
+    {
+      clave: 'jota',
+      nombre: 'Jota',
+      zona: { x: 111, y: 62, ancho: 20, alto: 51 },
+      acercarse: { x: 100, y: 113 },
+      respuestas: {
+        mirar: 'Jota, el bajista de Exiliado. Está desesperado.',
+        agarrar: 'Mejor no.',
+      },
+    },
     {
       clave: 'raulo',
       nombre: 'Raulo',
@@ -298,8 +342,10 @@ export const VEREDA_PERRIER: DatosEscena = {
   ],
   anclas: {},
   salidas: { izquierda: 'EsquinaBunker' },
+  // Se revisan antes que las reglas de las misiones: sin misión, la misión 2 no arranca.
   reglas: [
     { punto: 'raulo', accion: 'hablar', si: SIN_MISION, respuesta: { dialogo: 'raulo-sin-mision' } },
     { punto: 'ventanal', accion: 'mirar', si: SIN_MISION, respuesta: 'Está oscuro. No hay nadie.' },
+    { punto: 'ventanal', accion: 'mirar', si: DESPUES_DEL_SHOW, respuesta: 'Está oscuro. No hay nadie.' },
   ],
 };

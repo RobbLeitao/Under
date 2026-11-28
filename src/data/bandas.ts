@@ -25,5 +25,6 @@ export const BANDAS: Record<string, Banda> = {
   kainoas: { clave: 'kainoas', nombre: 'Kainoas', estilo: 'Nu metal', plataforma: null, logo: null },
   abismal: { clave: 'abismal', nombre: 'Abismal', estilo: 'Groove metal', plataforma: null, logo: null },
   avtomata: { clave: 'avtomata', nombre: 'Avtomata', estilo: 'Modern death metal', plataforma: null, logo: null },
-  exiliado: { clave: 'exiliado', nombre: 'Exiliado', estilo: 'Rock metal alternativo', plataforma: null, logo: null },
+  // PENDIENTE: el link de Exiliado. Mientras tanto, los diálogos dicen "todas las plataformas" y no hay botón.
+  exiliado: { clave: 'exiliado', nombre: 'Exiliado', estilo: 'Rock metal alternativo', plataforma: null, logo: 'exiliado.png' },
 };

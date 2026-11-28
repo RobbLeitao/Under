@@ -9,10 +9,10 @@ function mismaAccion(a: Accion, b: Accion): boolean {
 
 /**
  * La primera regla que corresponde a esta acción sobre este punto, o null. Se revisan primero
- * las misiones de la escena, en orden, y después las reglas propias de la escena.
+ * las reglas propias de la escena (la vereda sin misión) y después las misiones, en orden.
  */
 export function buscarRegla(misiones: Mision[], reglasEscena: Regla[], punto: string, accion: Accion): Regla | null {
-  const reglas = [...misiones.flatMap((m) => m.reglas), ...reglasEscena];
+  const reglas = [...reglasEscena, ...misiones.flatMap((m) => m.reglas)];
   return reglas.find((r) => r.punto === punto && mismaAccion(r.accion, accion) && cumple(r.si)) ?? null;
 }
 
@@ -36,6 +36,11 @@ export function texturaDe(misiones: Mision[], personaje: string, base: string): 
     if (apariencia) return apariencia.textura;
   }
   return base;
+}
+
+/** La regla que termina la misión (la que marca su marcaFin), para mostrar sus recompensas. */
+export function reglaFinal(mision: Mision): Regla | null {
+  return mision.reglas.find((r) => r.efectos?.some((e) => 'marcar' in e && e.marcar === mision.marcaFin)) ?? null;
 }
 
 /** La misión que termina con esta regla (la que marca su marcaFin), o null. */

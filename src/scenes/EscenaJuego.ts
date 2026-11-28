@@ -4,7 +4,7 @@ import type { DatosEscena, Lado, Personaje, PuntoInteres, Respuesta } from '../d
 import { RESPUESTAS_POR_DEFECTO, RESPUESTA_USAR_POR_DEFECTO } from '../data/acciones';
 import { DIALOGOS, type ClaveHablante, type Dialogo } from '../data/dialogos';
 import { OBJETOS } from '../data/objetos';
-import type { Accion, Mision, Regla } from '../data/misiones/tipos';
+import type { Accion, Efecto, Mision, Regla } from '../data/misiones/tipos';
 import { cumple, guardarEscena, hayNovedades } from '../systems/estado';
 import { aplicarEfectos, buscarRegla, misionQueTermina, texturaDe } from '../systems/misiones';
 import { cortarFragmento } from '../systems/musica';
@@ -19,6 +19,8 @@ const VELOCIDAD = 260;
 const MITAD_JUGADOR = 6;
 /** Cuántas veces se rodean obstáculos al armar una ruta. */
 const RODEOS_MAXIMOS = 4;
+/** Cuántas veces se rehace la ruta hacia un mismo destino si alguien se cruza. */
+const RECALCULOS_MAXIMOS = 3;
 /** El perro se frena cada tanto: cuánto camina entre paradas y cuánto dura cada parada. */
 const MS_PASEO_CAMINA = [3000, 8000];
 const MS_PASEO_QUIETO = [1500, 4000];
@@ -42,6 +44,8 @@ type Direccion = 'izquierda' | 'derecha' | 'arriba' | 'abajo';
 export interface EntradaEscena {
   entrada?: Lado;
   y?: number;
+  /** Sin borde: dónde aparece el jugador (unidades), en lugar del inicio de la escena. */
+  x?: number;
 }
 
 /** Un personaje que pasea solo por la vereda (el perro). */
@@ -88,6 +92,7 @@ export abstract class EscenaJuego extends Phaser.Scene {
   /** Adónde va la ruta actual (para recalcularla si alguien se cruza). */
   private destino: Punto | null = null;
   private recalculada = false;
+  private recalculos = 0;
   /** El jugador está caminando (con la animación de caminar puesta). */
   private caminando = false;
   private paseantes: Paseante[] = [];
@@ -160,6 +165,12 @@ export abstract class EscenaJuego extends Phaser.Scene {
         .setOrigin(0.5, 1)
         .setDepth(p.y * ESCALA)
         .setName(p.clave);
+      // Jota es diestro: su sprite nunca se espeja, ni aunque algo lo pida al caminar.
+      if (p.sinEspejar) {
+        sprite.setFlipX = () => sprite;
+        sprite.setFlip = () => sprite;
+        sprite.toggleFlipX = () => sprite;
+      }
       if (p.paseo) {
         const ahora = this.time.now;
         this.paseantes.push({
@@ -195,6 +206,7 @@ export abstract class EscenaJuego extends Phaser.Scene {
       alElegirVerbo: (verbo) => this.actuar(verbo),
       alTocarPhone: () => this.abrirPhone(),
       alSoltarObjeto: (objeto, x, y) => this.soltarObjeto(objeto, x, y),
+      alMirarObjeto: (objeto) => void this.mirarObjeto(objeto),
     });
 
     this.barra.setNovedad(hayNovedades());
@@ -277,7 +289,8 @@ export abstract class EscenaJuego extends Phaser.Scene {
     if (lado) {
       this.pies = { x: this.xAfuera(lado), y: Math.round(y) * ESCALA };
     } else {
-      this.pies = { x: this.datos.inicioJugador.x * ESCALA, y: this.datos.inicioJugador.y * ESCALA };
+      const x = this.entrada.x ?? this.datos.inicioJugador.x;
+      this.pies = { x: x * ESCALA, y: Math.round(y) * ESCALA };
     }
   }
 
@@ -555,14 +568,25 @@ export abstract class EscenaJuego extends Phaser.Scene {
     return null;
   }
 
-  /** Línea por la que se rodea un obstáculo: por atrás, o por adelante si atrás no entra. */
-  private filaDeRodeo(o: Obstaculo): number | null {
+  /**
+   * Línea por la que se rodea un obstáculo: por atrás, o por adelante si atrás no entra.
+   * Si el destino está delante del obstáculo (la rejilla, delante de Jota), por adelante:
+   * por atrás no se llega sin atravesarlo.
+   */
+  private filaDeRodeo(o: Obstaculo, hasta?: Punto): number | null {
     const z = this.datos.zonaCaminable;
     const atras = o.y - o.mitadFondo - ESCALA;
     const adelante = o.y + o.mitadFondo + ESCALA;
-    if (atras >= z.yMin * ESCALA) return atras;
-    if (adelante <= z.yMax * ESCALA) return adelante;
+    const entraAtras = atras >= z.yMin * ESCALA;
+    const entraAdelante = adelante <= z.yMax * ESCALA;
+    if (hasta && hasta.y >= o.y + o.mitadFondo && entraAdelante) return adelante;
+    if (entraAtras) return atras;
+    if (entraAdelante) return adelante;
     return null;
+  }
+
+  private mismo(a: Obstaculo | null, b: Obstaculo) {
+    return a !== null && a.x === b.x && a.y === b.y;
   }
 
   /** Si el destino cae adentro de alguien, se corre al lugar libre más cercano. */
@@ -588,7 +612,7 @@ export abstract class EscenaJuego extends Phaser.Scene {
       const o = this.obstaculoEnTramo(actual, hasta);
       if (!o) break;
       const lado = Math.sign(hasta.x - actual.x) || 1;
-      const fila = this.filaDeRodeo(o);
+      const fila = this.filaDeRodeo(o, hasta);
       if (fila === null) {
         // No se puede rodear: se queda antes del obstáculo.
         ruta.push(enVereda({ x: o.x - lado * (o.mitadAncho + ESCALA), y: actual.y }));
@@ -596,9 +620,9 @@ export abstract class EscenaJuego extends Phaser.Scene {
       }
       const entrada = enVereda({ x: o.x - lado * (o.mitadAncho + ESCALA), y: fila });
       const salida = enVereda({ x: o.x + lado * (o.mitadAncho + ESCALA), y: fila });
-      // Solo hace falta pasar por la salida si el destino está del otro lado.
+      // Solo hace falta pasar por la salida si desde la entrada todavía se lo atraviesa.
       ruta.push(entrada);
-      if (Math.sign(hasta.x - salida.x) === lado || Math.abs(hasta.x - o.x) < o.mitadAncho) ruta.push(salida);
+      if (this.mismo(this.obstaculoEnTramo(entrada, hasta), o)) ruta.push(salida);
       actual = ruta[ruta.length - 1];
     }
     ruta.push(hasta);
@@ -617,8 +641,9 @@ export abstract class EscenaJuego extends Phaser.Scene {
     const siguiente = llega ? objetivo : { x: this.pies.x + (dx / distancia) * paso, y: this.pies.y + (dy / distancia) * paso };
 
     if (!this.saliendo && this.bloquea(this.pies, siguiente)) {
-      if (!this.recalculada && this.destino) {
+      if (!this.recalculada && this.destino && this.recalculos < RECALCULOS_MAXIMOS) {
         this.recalculada = true;
+        this.recalculos++;
         this.ruta = this.planificar(this.pies, this.liberar(this.destino));
         return;
       }
@@ -749,18 +774,26 @@ export abstract class EscenaJuego extends Phaser.Scene {
     const regla = buscarRegla(this.misiones, this.datos.reglas ?? [], punto.clave, accion);
     const respuesta: Respuesta =
       regla?.respuesta ??
-      (typeof accion === 'string' ? (punto.respuestas[accion] ?? RESPUESTAS_POR_DEFECTO[accion]) : RESPUESTA_USAR_POR_DEFECTO);
+      (typeof accion === 'string'
+        ? (punto.respuestas[accion] ?? RESPUESTAS_POR_DEFECTO[accion])
+        : (OBJETOS[accion.usar]?.usarEnOtraCosa ?? RESPUESTA_USAR_POR_DEFECTO));
 
     // Los efectos van antes del diálogo: Nikola ya tiene puesto el pasamontañas cuando agradece.
     const termina = misionQueTermina(this.misiones, regla);
-    const agregados = aplicarEfectos(regla?.efectos);
-    this.actualizarApariencias();
+    const agregados = this.efectos(regla?.efectos);
+    await this.dialogo(this.comoDialogo(respuesta));
 
-    const dialogo: Dialogo =
-      typeof respuesta === 'string' ? { lineas: [{ quien: 'jugador', texto: respuesta }] } : DIALOGOS[respuesta.dialogo];
-    await this.dialogo(dialogo);
+    // Una escena automática (Jota sale, Raulo va al depósito, el show) y lo que viene después.
+    if (regla?.secuencia) {
+      await this.secuencia(regla.secuencia);
+      if (!this.scene.isActive()) return;
+    }
+    if (regla?.despues) {
+      agregados.push(...this.efectos(regla.despues.efectos));
+      if (regla.despues.respuesta) await this.dialogo(this.comoDialogo(regla.despues.respuesta));
+    }
 
-    if (termina && regla) {
+    if (termina && regla && !regla.secuencia) {
       await this.misionCumplida(termina, regla);
       return;
     }
@@ -774,6 +807,32 @@ export abstract class EscenaJuego extends Phaser.Scene {
     }
     this.ocupado = false;
   }
+
+  /** Aplica efectos y pone la escena de acuerdo con el avance. Devuelve los objetos que se agregaron. */
+  private efectos(efectos: Efecto[] | undefined) {
+    const agregados = aplicarEfectos(efectos);
+    this.actualizarApariencias();
+    return agregados;
+  }
+
+  /** Una frase suelta la dice el jugador; si no, es un diálogo de data/dialogos.ts. */
+  protected comoDialogo(respuesta: Respuesta): Dialogo {
+    return typeof respuesta === 'string' ? { lineas: [{ quien: 'jugador', texto: respuesta }] } : DIALOGOS[respuesta.dialogo];
+  }
+
+  /** Mirar un objeto del inventario: el jugador dice cómo es. */
+  private async mirarObjeto(objeto: string) {
+    if (this.ocupado) return;
+    this.ocupado = true;
+    await this.dialogo(this.comoDialogo(OBJETOS[objeto]?.mirar ?? RESPUESTAS_POR_DEFECTO.mirar));
+    this.ocupado = false;
+  }
+
+  /**
+   * Escena automática de una regla (data/misiones/). Cada escena hace las suyas; mientras dura,
+   * el jugador no controla nada.
+   */
+  protected async secuencia(_nombre: string): Promise<void> {}
 
   /** Panel de "¡Misión cumplida!" con las recompensas de la regla que la terminó. */
   protected async misionCumplida(mision: Mision, regla: Regla) {
@@ -859,6 +918,7 @@ export abstract class EscenaJuego extends Phaser.Scene {
     this.llegada = new Promise((resolver) => (this.alLlegar = resolver));
     this.destino = destino;
     this.recalculada = false;
+    this.recalculos = 0;
     this.ruta = this.planificar(this.pies, destino);
     this.iniciarPasos();
   }

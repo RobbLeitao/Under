@@ -32,4 +32,7 @@ export const ANIMACIONES: Animacion[] = [
   // Misión 2: Raulo (encargado de Perrier).
   { clave: 'raulo-camina', ancho: 32, alto: 61, cuadros: 4, fps: 7 },
   { clave: 'raulo-habla', ancho: 32, alto: 61, cuadros: 3, fps: 4 },
+  // Jota (Exiliado): camina sin balancear los brazos porque sostiene el bajo. Nunca se espeja.
+  { clave: 'jota-camina', ancho: 42, alto: 53, cuadros: 4, fps: 7 },
+  { clave: 'jota-habla', ancho: 42, alto: 53, cuadros: 3, fps: 4 },
 ];

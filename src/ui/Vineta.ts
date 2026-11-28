@@ -111,6 +111,9 @@ class Vineta extends Phaser.GameObjects.Container {
 /**
  * Reproduce un diálogo línea por línea. Cada toque pasa a la línea siguiente.
  * Mientras dura, bloquea los toques en la escena y en la barra.
+ *
+ * Con `msAuto`, cada línea pasa sola después de ese tiempo (en escenas sin control, como el
+ * show), salvo la que lleva el botón de la plataforma, que espera el toque.
  */
 export function reproducirDialogo(
   escena: Phaser.Scene,
@@ -118,6 +121,7 @@ export function reproducirDialogo(
   anclas: Anclas,
   banda?: string,
   alHablar?: AlHablar,
+  msAuto?: number,
 ): Promise<void> {
   return new Promise((resolver) => {
     if (lineas.length === 0) return resolver();
@@ -127,13 +131,19 @@ export function reproducirDialogo(
       .setDepth(19999)
       .setInteractive();
     let indice = 0;
-    let actual = new Vineta(escena, lineas[0], anclas(lineas[0].quien), banda, alHablar);
-
-    // Cada toque pasa a la línea siguiente (la línea ya se ve entera), salvo uno que llegue
-    // apenas aparece, para que un doble toque no se saltee una línea sin querer.
-    let desde = escena.time.now;
-    bloqueo.on('pointerdown', () => {
-      if (escena.time.now - desde < ESPERA_MINIMA) return;
+    let actual: Vineta;
+    let desde = 0;
+    let automatico: Phaser.Time.TimerEvent | undefined;
+    const mostrar = () => {
+      const linea = lineas[indice];
+      actual = new Vineta(escena, linea, anclas(linea.quien), banda, alHablar);
+      desde = escena.time.now;
+      automatico?.remove();
+      const conBoton = Boolean(banda && linea.texto.includes('{plataforma}'));
+      if (msAuto && !conBoton) automatico = escena.time.delayedCall(msAuto, pasar);
+    };
+    const pasar = () => {
+      automatico?.remove();
       actual.completar();
       actual.destroy();
       indice++;
@@ -142,8 +152,15 @@ export function reproducirDialogo(
         resolver();
         return;
       }
-      actual = new Vineta(escena, lineas[indice], anclas(lineas[indice].quien), banda, alHablar);
-      desde = escena.time.now;
+      mostrar();
+    };
+    mostrar();
+
+    // Cada toque pasa a la línea siguiente (la línea ya se ve entera), salvo uno que llegue
+    // apenas aparece, para que un doble toque no se saltee una línea sin querer.
+    bloqueo.on('pointerdown', () => {
+      if (escena.time.now - desde < ESPERA_MINIMA) return;
+      pasar();
     });
   });
 }
