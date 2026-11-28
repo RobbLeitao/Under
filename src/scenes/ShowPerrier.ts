@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { ANCHO, ESCALA } from '../config';
 import { DIALOGOS } from '../data/dialogos';
+import { VEREDA_PERRIER } from '../data/escenas';
 import { MISION_2 } from '../data/misiones/mision2';
 import { cortarFragmento, pausarReproductor, tocarFragmento } from '../systems/musica';
 import { crearBoton } from '../ui/Boton';
@@ -14,8 +15,12 @@ const MS_SALUDO = 3500;
 const MS_FUNDIDO = 600;
 const ANCHO_SALTAR = 140;
 const ALTO_SALTAR = 56;
-/** Dónde aparece el jugador en la vereda al volver: al lado de Raulo, en la puerta. */
-const VUELTA_A_LA_VEREDA: EntradaEscena = { x: 142, y: 112 };
+/**
+ * Dónde aparece el jugador en la vereda al volver: a la izquierda de Raulo, con algo de aire.
+ * Sale de los datos de la vereda, así sigue a Raulo si se lo mueve.
+ */
+const LUGAR_DE_RAULO = VEREDA_PERRIER.puntos.find((p) => p.clave === 'raulo')?.acercarse ?? { x: 128, y: 110 };
+const VUELTA_A_LA_VEREDA: EntradaEscena = { x: LUGAR_DE_RAULO.x - 8, y: LUGAR_DE_RAULO.y + 2 };
 
 /**
  * El show de Exiliado adentro de Perrier (misión 2, paso 10). Escena corta y sin control:
