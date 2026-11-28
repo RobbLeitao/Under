@@ -1,8 +1,9 @@
 import Phaser from 'phaser';
 import { ANCHO, ALTO } from '../config';
 import { cargarNombre, guardarNombre, limpiarNombre, LARGO_MAXIMO_NOMBRE } from '../systems/guardado';
+import { escenaGuardada } from '../systems/estado';
 
-/** Escena a la que se pasa después de elegir el nombre. */
+/** Escena a la que se pasa después de elegir el nombre, si no hay una guardada. */
 const ESCENA_SIGUIENTE = 'EsquinaBunker';
 
 /** Franjas planas del cielo al atardecer (docs/estilo-visual.md), de arriba hacia abajo. */
@@ -95,6 +96,8 @@ export class Inicio extends Phaser.Scene {
   }
 
   private empezar() {
-    this.scene.start(ESCENA_SIGUIENTE);
+    // Se sigue en la escena donde quedó el jugador.
+    const guardada = escenaGuardada();
+    this.scene.start(guardada && this.scene.get(guardada) ? guardada : ESCENA_SIGUIENTE);
   }
 }

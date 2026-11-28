@@ -3,7 +3,7 @@
  * {plataforma} es la plataforma de la banda del diálogo (ver bandas.ts).
  */
 
-export type ClaveHablante = 'jugador' | 'nikola' | 'kiosquero';
+export type ClaveHablante = 'jugador' | 'nikola' | 'kiosquero' | 'raulo';
 
 export interface Hablante {
   nombre: string;
@@ -17,6 +17,8 @@ export const HABLANTES: Record<ClaveHablante, Hablante> = {
   jugador: { nombre: '{jugador}', tono: 330, color: '#F4EFE6' },
   nikola: { nombre: 'Nikola', tono: 150, color: '#FF9A4A' },
   kiosquero: { nombre: 'Kiosquero', tono: 220, color: '#8FD9FF' },
+  // Raulo: el más alto del juego, voz grave.
+  raulo: { nombre: 'Raulo', tono: 110, color: '#FFD45A' },
 };
 
 export interface Linea {
@@ -86,6 +88,18 @@ export const DIALOGOS = {
   },
   'perro-suelta': {
     lineas: [{ quien: 'jugador', texto: '¡Lo soltó! Un poco babeado, pero entero.' }],
+  },
+
+  // Vereda de Perrier (misión 2, docs/diseno.md). Los de Raulo se ajustan con él.
+  'raulo-sin-mision': {
+    lineas: [{ quien: 'raulo', texto: 'Todavía no abrimos, pendejo. Pasá más tarde.' }],
+  },
+  'raulo-llegada': {
+    lineas: [
+      { quien: 'jugador', texto: 'Buenas. ¿Se puede pasar?' },
+      { quien: 'raulo', texto: 'Todavía no abrimos. Están probando sonido.' },
+      { quien: 'raulo', texto: 'Volvé a la noche, que toca Exiliado.' },
+    ],
   },
 } satisfies Record<string, Dialogo>;
 

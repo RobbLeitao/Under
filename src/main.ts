@@ -3,6 +3,7 @@ import { Boot } from './scenes/Boot';
 import { Preload } from './scenes/Preload';
 import { Inicio } from './scenes/Inicio';
 import { EsquinaBunker } from './scenes/EsquinaBunker';
+import { VeredaPerrier } from './scenes/VeredaPerrier';
 import { Phone } from './scenes/Phone';
 import { Pausa } from './scenes/Pausa';
 import { ANCHO, ALTO } from './config';
@@ -21,7 +22,7 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   input: { activePointers: 2 },
   dom: { createContainer: true },
-  scene: [Boot, Preload, Inicio, EsquinaBunker, Phone, Pausa],
+  scene: [Boot, Preload, Inicio, EsquinaBunker, VeredaPerrier, Phone, Pausa],
 };
 
 const juego = new Phaser.Game(config);

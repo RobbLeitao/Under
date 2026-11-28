@@ -74,7 +74,8 @@ export class Pausa extends Phaser.Scene {
         return;
       }
       reiniciarPartida();
-      this.salirA(this.volverA);
+      // La partida arranca de nuevo con la misión 1, en la esquina de El Bunker.
+      this.salirA('EsquinaBunker');
     }, 'oscuro');
 
     crearBoton(this, x0 + RELLENO, siguiente(), ancho, 'Ir al inicio', () => this.salirA('Inicio'), 'oscuro');

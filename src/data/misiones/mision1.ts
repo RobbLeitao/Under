@@ -13,7 +13,7 @@ export const MISION_1: Mision = {
   marcaFin: 'mision1-completa',
   titulo: 'El pasamontañas perdido',
   banda: 'orate',
-  siguiente: 'La prueba de sonido en Vinoteca Perrier. Muy pronto.',
+  siguiente: 'Esta noche toca Exiliado en Vinoteca Perrier, acá al lado. Caminá hacia la derecha.',
   // El riff que suena en los auriculares del jugador mientras llega Nikola. El MP3 tiene
   // 12 s de silencio y una intro suave hasta 0:23; en 0:24 entra la banda con todo.
   musicaEntrada: { tema: 'orate-psicopata', desde: 24, duracion: 12, volumen: 0.15 },

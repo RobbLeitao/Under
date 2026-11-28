@@ -47,6 +47,7 @@ docs/                diseño y estilo
 - **Nadie se atraviesa:** los personajes con `cuerpo` en `src/data/escenas.ts` (Nikola, el perro) son obstáculos. El jugador los rodea por atrás al caminar tocando y se frena contra ellos con teclado.
 - **Profundidad:** todo se ordena por la línea de los pies. Lo del fondo que tiene que tapar al jugador cuando pasa por atrás (como la parada de colectivo) va como `decorado`, separado del SVG del fondo.
 - **Mismo movimiento para todos:** cada personaje que camina tiene su hoja `<textura>-camina` con el mismo esquema de 4 cuadros que el jugador (`scripts/generar-caminar.py` la arma a partir del cuadro quieto).
+- **Escenas de juego:** cada lugar es una subclase de `EscenaJuego` (`src/scenes/EscenaJuego.ts`) con sus datos en `src/data/escenas.ts` y las misiones que pasan ahí. Las escenas se conectan caminando por los bordes (`salidas`): se entra por el borde opuesto, a la misma altura de la vereda, y la escena donde quedó el jugador se guarda para seguir ahí.
 - **Pausa:** botón arriba a la derecha de cada escena de juego (y Esc o P). Menú con Seguir, Sonido sí/no (se guarda en el dispositivo), Empezar de nuevo (pide confirmación y borra el avance, no el nombre) e Ir al inicio.
 - **Inventario vs. Phone:** los objetos físicos (monedas, galletitas, pasamontañas) van al inventario de abajo; lo digital (música, álbum de figuritas) vive en el Phone.
 

@@ -29,4 +29,7 @@ export const ANIMACIONES: Animacion[] = [
   { clave: 'kiosquero-habla', ancho: 24, alto: 25, cuadros: 3, fps: 4 },
   { clave: 'perro-camina', ancho: 32, alto: 17, cuadros: 4, fps: 8 },
   { clave: 'perro-sin-pasamontanas-camina', ancho: 32, alto: 17, cuadros: 4, fps: 8 },
+  // Misión 2: Raulo (encargado de Perrier).
+  { clave: 'raulo-camina', ancho: 32, alto: 61, cuadros: 4, fps: 7 },
+  { clave: 'raulo-habla', ancho: 32, alto: 61, cuadros: 3, fps: 4 },
 ];
