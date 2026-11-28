@@ -17,6 +17,25 @@ const SPRITES: Record<string, { archivo: string; ancho: number; alto: number }> 
   kiosquero: { archivo: 'kiosquero.svg', ancho: 18, alto: 23 },
   'perro-sin-pasamontanas': { archivo: 'perro-sin-pasamontanas.svg', ancho: 26, alto: 15 },
   'monedas-piso': { archivo: 'monedas-piso.svg', ancho: 8, alto: 3 },
+  raulo: { archivo: 'raulo.svg', ancho: 26, alto: 59 },
+};
+
+/** Partes de las escenas en SVG que van aparte del fondo (decorados y objetos), con su tamaño en unidades. */
+const PIEZAS: Record<string, { archivo: string; ancho: number; alto: number }> = {
+  // La parada de colectivo, aparte del fondo.
+  'parada-colectivo': { archivo: 'parada-colectivo.svg', ancho: 58, alto: 50 },
+  // Las farolas, al borde de la vereda: tapan al jugador cuando pasa por detrás.
+  'farola-esquina': { archivo: 'farola-esquina.svg', ancho: 77, alto: 89 },
+  'farola-perrier': { archivo: 'farola-perrier.svg', ancho: 22, alto: 89 },
+  // El flyer de la pared de Perrier: solo mientras hay misión.
+  'flyer-exiliado': { archivo: 'flyer-exiliado.svg', ancho: 39, alto: 40 },
+};
+
+/** Fondos de 1280x560 (el SVG ya mide eso). */
+const FONDOS: Record<string, string> = {
+  'fondo-esquina-el-bunker': 'esquina-el-bunker.svg',
+  'fondo-vereda-perrier': 'vereda-perrier.svg',
+  'fondo-vereda-perrier-sin-mision': 'vereda-perrier-sin-mision.svg',
 };
 
 /** Los íconos del inventario miden 16x16 unidades. */
@@ -29,12 +48,10 @@ export class Preload extends Phaser.Scene {
   }
 
   preload() {
-    // El SVG del fondo ya mide 1280x560.
-    this.load.svg('fondo-esquina-el-bunker', 'assets/escenas/esquina-el-bunker.svg');
-    // La parada de colectivo, aparte del fondo (58x50 unidades).
-    this.load.svg('parada-colectivo', 'assets/escenas/parada-colectivo.svg', { width: 58 * ESCALA, height: 50 * ESCALA });
-    // La farola, al borde de la vereda, con el cartel de Av. Independencia: tapa al jugador cuando pasa por detrás (77x89 unidades).
-    this.load.svg('farola-esquina', 'assets/escenas/farola-esquina.svg', { width: 77 * ESCALA, height: 89 * ESCALA });
+    for (const [clave, archivo] of Object.entries(FONDOS)) this.load.svg(clave, `assets/escenas/${archivo}`);
+    for (const [clave, p] of Object.entries(PIEZAS)) {
+      this.load.svg(clave, `assets/escenas/${p.archivo}`, { width: p.ancho * ESCALA, height: p.alto * ESCALA });
+    }
     for (const [clave, s] of Object.entries(SPRITES)) {
       this.load.svg(clave, `assets/sprites/${s.archivo}`, {
         width: s.ancho * ESCALA,

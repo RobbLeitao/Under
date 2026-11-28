@@ -1,6 +1,6 @@
 import type { Verbo } from './acciones';
 import type { ClaveDialogo, ClaveHablante } from './dialogos';
-import type { Condicion } from './misiones/tipos';
+import type { Condicion, Regla } from './misiones/tipos';
 
 /**
  * Datos de cada escena. Todas las medidas van en unidades de la grilla de 320x140
@@ -24,6 +24,8 @@ export interface Personaje {
    * y hacia adelante de sus pies. El jugador no lo puede atravesar: lo rodea por atrás.
    */
   cuerpo?: { mitadAncho: number; mitadFondo: number };
+  /** Si está, el personaje solo está en la escena mientras se cumpla. */
+  si?: Condicion;
 }
 
 /**
@@ -63,6 +65,8 @@ export interface PuntoInteres {
   acercarse: { x: number; y: number };
   /** Respuesta a cada acción; si falta, se usa la respuesta por defecto. */
   respuestas: Partial<Record<Verbo, Respuesta>>;
+  /** Si está, solo se puede tocar mientras se cumpla (el flyer, solo con misión). */
+  si?: Condicion;
 }
 
 /** Algo dibujado en la escena que aparece o desaparece según el avance (las monedas del piso). */
@@ -77,8 +81,15 @@ export interface ObjetoEnEscena {
   brilla?: boolean;
 }
 
+/** Lado de la escena por el que se entra o se sale caminando. */
+export type Lado = 'izquierda' | 'derecha';
+
 export interface DatosEscena {
+  /** Clave de la escena de Phaser. */
+  clave: string;
   fondo: string;
+  /** Otros fondos según el avance: gana el primero que se cumpla; si ninguno, `fondo`. */
+  fondoSegun?: { textura: string; si: Condicion }[];
   carteles: Cartel[];
   /** Rectángulo donde pueden estar los pies del jugador. */
   zonaCaminable: { xMin: number; xMax: number; yMin: number; yMax: number };
@@ -89,9 +100,20 @@ export interface DatosEscena {
   puntos: PuntoInteres[];
   /** Dónde salen las viñetas de quien habla sin sprite en la escena (arriba de la cabeza). */
   anclas: Partial<Record<ClaveHablante, { x: number; y: number }>>;
+  /**
+   * Escena a la que se pasa caminando por cada borde. Se sale tocando el piso cerca del borde
+   * o llegando a él con el teclado, y se entra por el borde opuesto de la otra escena.
+   */
+  salidas?: Partial<Record<Lado, string>>;
+  /**
+   * Respuestas que dependen del avance pero no son de una misión (la vereda sin misión).
+   * Se revisan después de las reglas de las misiones; gana la primera que coincide.
+   */
+  reglas?: Regla[];
 }
 
 export const ESQUINA_EL_BUNKER: DatosEscena = {
+  clave: 'EsquinaBunker',
   fondo: 'fondo-esquina-el-bunker',
   carteles: [
     { texto: 'KIOSCO', x: 177, y: 49, tamano: 7, color: '#F4EFE6' },
@@ -185,4 +207,99 @@ export const ESQUINA_EL_BUNKER: DatosEscena = {
   ],
   // Todos los que hablan tienen sprite; la viñeta sale arriba de su cabeza.
   anclas: {},
+  salidas: { derecha: 'VeredaPerrier' },
+};
+
+/** Marca de avance con la que la vereda de Perrier pasa a tener misión (flyer y ventanal encendido). */
+const CON_MISION: Condicion = { con: ['mision1-completa'] };
+const SIN_MISION: Condicion = { sin: ['mision1-completa'] };
+
+/**
+ * La vereda de Vinoteca Perrier, a la derecha de la esquina de El Bunker. Sin la misión 1
+ * terminada está sin misión: sin flyer, el ventanal apagado y Raulo que todavía no abrió.
+ */
+export const VEREDA_PERRIER: DatosEscena = {
+  clave: 'VeredaPerrier',
+  fondo: 'fondo-vereda-perrier',
+  fondoSegun: [{ textura: 'fondo-vereda-perrier-sin-mision', si: SIN_MISION }],
+  carteles: [],
+  // La fachada se apoya en y 100 y el cordón empieza en y 117. Atrás de Raulo (pies en 108)
+  // queda una fila para rodearlo.
+  zonaCaminable: { xMin: 8, xMax: 312, yMin: 104, yMax: 117 },
+  inicioJugador: { x: 60, y: 114 },
+  personajes: [
+    // Raulo, parado frente a la puerta de madera.
+    { clave: 'raulo', textura: 'raulo', x: 164, y: 108, cuerpo: { mitadAncho: 9, mitadFondo: 3 } },
+  ],
+  decorados: [
+    // La farola al borde de la vereda (el pie, en y 116): tapa al jugador cuando pasa por detrás.
+    { textura: 'farola-perrier', x: 212, y: 28, base: 116 },
+  ],
+  objetos: [
+    // El flyer del show de esa noche, pegado en la pared de ladrillo. Solo con misión.
+    { textura: 'flyer-exiliado', x: 186, y: 55, si: CON_MISION },
+  ],
+  puntos: [
+    {
+      clave: 'raulo',
+      nombre: 'Raulo',
+      // Raulo tapa casi toda la puerta y la chapa: su zona empieza en la cara (y 57) y deja
+      // libres la cresta, donde se toca la chapa, y los bordes de la puerta.
+      zona: { x: 155, y: 57, ancho: 18, alto: 51 },
+      acercarse: { x: 146, y: 110 },
+      respuestas: {
+        mirar: 'Raulo, el encargado. Es enorme, pero tiene cara de buen tipo.',
+        agarrar: 'Mejor no.',
+        hablar: { dialogo: 'raulo-llegada' },
+      },
+    },
+    {
+      clave: 'chapa',
+      nombre: 'la chapa',
+      zona: { x: 154, y: 50, ancho: 21, alto: 9 },
+      acercarse: { x: 182, y: 110 },
+      respuestas: { mirar: 'Perrier, 2051. Desde 1992.' },
+    },
+    {
+      clave: 'puerta',
+      nombre: 'la puerta',
+      zona: { x: 151, y: 58, ancho: 26, alto: 42 },
+      acercarse: { x: 182, y: 110 },
+      respuestas: { mirar: 'Una puerta de madera de las de antes.' },
+    },
+    {
+      clave: 'flyer',
+      nombre: 'el flyer',
+      zona: { x: 186, y: 55, ancho: 39, alto: 40 },
+      acercarse: { x: 205, y: 110 },
+      respuestas: {
+        mirar: 'Hoy toca Exiliado. Está bueno el símbolo.',
+        agarrar: 'Mejor lo dejo. Si no, ¿cómo se enteran?',
+      },
+      si: CON_MISION,
+    },
+    {
+      clave: 'ventanal',
+      nombre: 'el ventanal',
+      zona: { x: 52, y: 68, ancho: 88, alto: 32 },
+      acercarse: { x: 96, y: 110 },
+      respuestas: { mirar: 'Exiliado está probando. Se escucha hasta acá afuera.' },
+    },
+    {
+      clave: 'rejilla',
+      nombre: 'la rejilla',
+      zona: { x: 104, y: 112, ancho: 16, alto: 10 },
+      acercarse: { x: 112, y: 116 },
+      respuestas: {
+        mirar: 'Allá abajo brilla un llavero con una argolla. Con la mano no llego.',
+        agarrar: 'No entra ni un dedo.',
+      },
+    },
+  ],
+  anclas: {},
+  salidas: { izquierda: 'EsquinaBunker' },
+  reglas: [
+    { punto: 'raulo', accion: 'hablar', si: SIN_MISION, respuesta: { dialogo: 'raulo-sin-mision' } },
+    { punto: 'ventanal', accion: 'mirar', si: SIN_MISION, respuesta: 'Está oscuro. No hay nadie.' },
+  ],
 };

@@ -10,12 +10,15 @@ interface Guardado {
   inventario: string[];
   /** Lo que se desbloqueó para el Phone: "tema:..." y "figurita:...". */
   recompensas: string[];
+  /** Escena donde estaba el jugador, para seguir ahí al volver a jugar. */
+  escena?: string;
 }
 
 const CLAVE = 'partida';
 
 const marcas = new Set<string>();
 const recompensas = new Set<string>();
+let escena: string | null = null;
 
 function guardar() {
   const datos: Guardado = {
@@ -23,6 +26,7 @@ function guardar() {
     marcas: [...marcas],
     inventario: [...inventario.lista()],
     recompensas: [...recompensas],
+    escena: escena ?? undefined,
   };
   escribirJSON(CLAVE, datos);
 }
@@ -34,6 +38,7 @@ export function iniciarEstado() {
     datos.marcas.forEach((m) => marcas.add(m));
     datos.recompensas.forEach((r) => recompensas.add(r));
     inventario.cargar(datos.inventario);
+    escena = datos.escena ?? null;
   }
   inventario.on('cambio', guardar);
 }
@@ -42,8 +47,20 @@ export function iniciarEstado() {
 export function reiniciarPartida() {
   marcas.clear();
   recompensas.clear();
+  escena = null;
   inventario.cargar([]);
   borrar(CLAVE);
+}
+
+/** Escena donde quedó el jugador la última vez, o null si todavía no jugó. */
+export function escenaGuardada(): string | null {
+  return escena;
+}
+
+export function guardarEscena(clave: string) {
+  if (escena === clave) return;
+  escena = clave;
+  guardar();
 }
 
 export function tieneMarca(marca: string) {
