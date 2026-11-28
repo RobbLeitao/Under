@@ -22,6 +22,13 @@ export interface Regla {
   si?: Condicion;
   respuesta: Respuesta;
   efectos?: Efecto[];
+  /**
+   * Escena automática que hace la escena de juego después de la respuesta (Jota sale a la
+   * vereda, Raulo va al depósito, el show). La escena la reconoce por este nombre.
+   */
+  secuencia?: string;
+  /** Lo que pasa después de la secuencia: más diálogo y más efectos. */
+  despues?: { respuesta?: Respuesta; efectos?: Efecto[] };
 }
 
 /** Cambia el sprite de un personaje según el avance. */
@@ -48,4 +55,6 @@ export interface Mision {
   siguiente: string;
   /** Música de fondo de la entrada: un pedazo de un tema de data/temas.ts (en segundos). */
   musicaEntrada?: { tema: string; desde: number; duracion: number; volumen: number };
+  /** El fragmento que suena en la escena del show (en segundos). */
+  musicaShow?: { tema: string; desde: number; duracion: number; volumen: number };
 }

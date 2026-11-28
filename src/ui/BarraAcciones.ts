@@ -31,6 +31,8 @@ export interface OpcionesBarra {
   alTocarPhone: () => void;
   /** Se soltó un objeto del inventario sobre la escena, en (x, y). */
   alSoltarObjeto: (objeto: string, x: number, y: number) => void;
+  /** Con un objeto del inventario elegido, se tocó Mirar. */
+  alMirarObjeto: (objeto: string) => void;
 }
 
 /** Distancia que hay que mover el dedo para que un toque sea un arrastre. */
@@ -118,7 +120,7 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
       boton.texto.setColor(nombre ? TEXTO.claro : TEXTO.apagado);
     }
     if (this.elegido) {
-      this.escribirLinea(`Usar ${nombreDe(this.elegido)} con… (tocá dónde)`).setColor(TEXTO.acento);
+      this.escribirLinea(`Usar ${nombreDe(this.elegido)} con… (tocá dónde, o Mirar)`).setColor(TEXTO.acento);
     } else if (nombre) {
       this.escribirLinea(nombre).setColor(TEXTO.acento);
     } else {
@@ -157,6 +159,13 @@ export class BarraAcciones extends Phaser.GameObjects.Container {
   }
 
   private tocarVerbo(verbo: Verbo) {
+    // Con un objeto del inventario elegido, Mirar lo mira a él.
+    if (this.elegido && verbo === 'mirar') {
+      const objeto = this.elegido;
+      this.elegirObjeto(null);
+      this.opciones.alMirarObjeto(objeto);
+      return;
+    }
     if (this.elegido) this.elegirObjeto(null);
     if (!this.objetivo) {
       this.mostrarMensaje('Primero tocá algo o a alguien en la escena.', 2500);

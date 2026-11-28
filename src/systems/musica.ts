@@ -97,6 +97,11 @@ export function cortarFragmento() {
   fragmento = null;
 }
 
+/** Pausa el tema del Phone si está sonando (por ejemplo, para que se escuche el show). */
+export function pausarReproductor() {
+  if (actual?.sonido.isPlaying) actual.sonido.pause();
+}
+
 /** Corta todo lo que suene (tema del Phone y fragmento), por ejemplo al reiniciar la partida. */
 export function detenerMusica() {
   cortarFragmento();

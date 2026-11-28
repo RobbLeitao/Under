@@ -18,6 +18,7 @@ const SPRITES: Record<string, { archivo: string; ancho: number; alto: number }> 
   'perro-sin-pasamontanas': { archivo: 'perro-sin-pasamontanas.svg', ancho: 26, alto: 15 },
   'monedas-piso': { archivo: 'monedas-piso.svg', ancho: 8, alto: 3 },
   raulo: { archivo: 'raulo.svg', ancho: 26, alto: 59 },
+  jota: { archivo: 'jota.svg', ancho: 36, alto: 51 },
 };
 
 /** Partes de las escenas en SVG que van aparte del fondo (decorados y objetos), con su tamaño en unidades. */
@@ -36,6 +37,7 @@ const FONDOS: Record<string, string> = {
   'fondo-esquina-el-bunker': 'esquina-el-bunker.svg',
   'fondo-vereda-perrier': 'vereda-perrier.svg',
   'fondo-vereda-perrier-sin-mision': 'vereda-perrier-sin-mision.svg',
+  'fondo-salon-perrier-show': 'salon-perrier-show.svg',
 };
 
 /** Los íconos del inventario miden 16x16 unidades. */

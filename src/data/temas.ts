@@ -15,4 +15,9 @@ export const TEMAS: Record<string, Tema> = {
     titulo: 'Psicopata (El Loco de la Ruta)',
     archivo: 'assets/audio/orate-psicopata.mp3',
   },
+  'exiliado-el-hombre-en-el-cuadro': {
+    banda: 'exiliado',
+    titulo: 'El Hombre en el Cuadro',
+    archivo: 'assets/audio/exiliado-el-hombre-en-el-cuadro.mp3',
+  },
 };
