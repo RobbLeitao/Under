@@ -220,8 +220,8 @@ const SIN_MISION: Condicion = { sin: ['mision1-completa'] };
  * en curso, así que la vereda vuelve a estar sin misión (ventanal apagado).
  */
 const DESPUES_DEL_SHOW: Condicion = { con: ['flyer-exiliado-retirado'] };
-/** Jota está en la vereda desde que sale (paso 3) hasta el show. */
-const JOTA_EN_LA_VEREDA: Condicion = { con: ['jota-salio'], sin: ['mision2-completa'] };
+/** Jota está en la vereda desde que sale (paso 3) hasta que vuelve a entrar para el show. */
+const JOTA_EN_LA_VEREDA: Condicion = { con: ['jota-salio'], sin: ['jota-entro'] };
 
 /**
  * La vereda de Vinoteca Perrier, a la derecha de la esquina de El Bunker. Sin la misión 1
@@ -240,13 +240,14 @@ export const VEREDA_PERRIER: DatosEscena = {
   zonaCaminable: { xMin: 8, xMax: 312, yMin: 104, yMax: 117 },
   inicioJugador: { x: 60, y: 114 },
   personajes: [
-    // Raulo, parado frente a la puerta de madera.
-    { clave: 'raulo', textura: 'raulo', x: 164, y: 108, cuerpo: { mitadAncho: 9, mitadFondo: 3 } },
-    // Jota, delante del ventanal, desde que sale a la vereda hasta el show. Diestro: nunca se espeja.
+    // Raulo, en la pared entre el ventanal y la puerta: deja la puerta y la chapa a la vista.
+    { clave: 'raulo', textura: 'raulo', x: 145, y: 108, cuerpo: { mitadAncho: 9, mitadFondo: 3 } },
+    // Jota, delante de la parte izquierda del ventanal, lejos de la rejilla y de Raulo, desde que
+    // sale a la vereda hasta que vuelve a entrar para el show. Diestro: nunca se espeja.
     {
       clave: 'jota',
       textura: 'jota',
-      x: 124,
+      x: 76,
       y: 113,
       cuerpo: { mitadAncho: 9, mitadFondo: 3 },
       si: JOTA_EN_LA_VEREDA,
@@ -266,8 +267,9 @@ export const VEREDA_PERRIER: DatosEscena = {
     {
       clave: 'bajo',
       nombre: 'el bajo de Jota',
-      zona: { x: 107, y: 88, ancho: 14, alto: 11 },
-      acercarse: { x: 100, y: 113 },
+      zona: { x: 59, y: 88, ancho: 14, alto: 11 },
+      // A la izquierda de Jota: a la derecha tiene el mástil del bajo.
+      acercarse: { x: 48, y: 113 },
       respuestas: {
         mirar: 'Un bajo de cuatro cuerdas. Bueno, de tres.',
         agarrar: 'Ni se me ocurre. Es su bajo.',
@@ -277,8 +279,8 @@ export const VEREDA_PERRIER: DatosEscena = {
     {
       clave: 'jota',
       nombre: 'Jota',
-      zona: { x: 111, y: 62, ancho: 20, alto: 51 },
-      acercarse: { x: 100, y: 113 },
+      zona: { x: 63, y: 62, ancho: 20, alto: 51 },
+      acercarse: { x: 48, y: 113 },
       respuestas: {
         mirar: 'Jota, el bajista de Exiliado. Está desesperado.',
         agarrar: 'Mejor no.',
@@ -287,10 +289,9 @@ export const VEREDA_PERRIER: DatosEscena = {
     {
       clave: 'raulo',
       nombre: 'Raulo',
-      // Raulo tapa casi toda la puerta y la chapa: su zona empieza en la cara (y 57) y deja
-      // libres la cresta, donde se toca la chapa, y los bordes de la puerta.
-      zona: { x: 155, y: 57, ancho: 18, alto: 51 },
-      acercarse: { x: 146, y: 110 },
+      zona: { x: 136, y: 49, ancho: 18, alto: 59 },
+      // A su izquierda: así, cuando Jota sale por la puerta, no lo tapa el jugador.
+      acercarse: { x: 128, y: 110 },
       respuestas: {
         mirar: 'Raulo, el encargado. Es enorme, pero tiene cara de buen tipo.',
         agarrar: 'Mejor no.',
@@ -301,14 +302,14 @@ export const VEREDA_PERRIER: DatosEscena = {
       clave: 'chapa',
       nombre: 'la chapa',
       zona: { x: 154, y: 50, ancho: 21, alto: 9 },
-      acercarse: { x: 182, y: 110 },
+      acercarse: { x: 166, y: 110 },
       respuestas: { mirar: 'Perrier, 2051. Desde 1992.' },
     },
     {
       clave: 'puerta',
       nombre: 'la puerta',
       zona: { x: 151, y: 58, ancho: 26, alto: 42 },
-      acercarse: { x: 182, y: 110 },
+      acercarse: { x: 166, y: 110 },
       respuestas: { mirar: 'Una puerta de madera de las de antes.' },
     },
     {
