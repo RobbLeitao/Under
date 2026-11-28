@@ -15,11 +15,9 @@ export const TEMAS: Record<string, Tema> = {
     titulo: 'Psicopata (El Loco de la Ruta)',
     archivo: 'assets/audio/orate-psicopata.mp3',
   },
-  // PENDIENTE: el tema de Exiliado. Mientras no esté el archivo, suena un placeholder silencioso
-  // de 10 segundos (assets/audio/exiliado-pendiente.wav). Al llegar, cambiar archivo y título.
-  'exiliado-pendiente': {
+  'exiliado-el-hombre-en-el-cuadro': {
     banda: 'exiliado',
-    titulo: 'Tema de Exiliado',
-    archivo: 'assets/audio/exiliado-pendiente.wav',
+    titulo: 'El Hombre en el Cuadro',
+    archivo: 'assets/audio/exiliado-el-hombre-en-el-cuadro.mp3',
   },
 };

@@ -328,8 +328,8 @@ Los diálogos de Raulo y de Jota se ajustan con ellos, para que suenen como habl
 ### Recompensas
 
 - La **figurita de Jota** en el álbum.
-- Un **tema de Exiliado** en el Phone, desde el archivo que pasa la banda.
-- El **enlace para escuchar a Exiliado** en {plataforma}.
+- Un **tema de Exiliado** ("El Hombre en el Cuadro") en el Phone, desde el archivo que pasa la banda. En el show suenan 10 segundos desde que entra la banda (0:30).
+- El **enlace para escuchar a Exiliado** en {plataforma}. Link de Exiliado: Spotify (cargado en `src/data/bandas.ts`).
 
 ### Recursos necesarios
 
@@ -350,5 +350,4 @@ Los diálogos de Raulo y de Jota se ajustan con ellos, para que suenen como habl
 
 ### Temas abiertos
 
-- El tema de Exiliado y su fragmento de 10 segundos: falta el archivo.
 - Pendiente para más adelante: la misión de Abismal y Peke.

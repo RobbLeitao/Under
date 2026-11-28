@@ -16,8 +16,8 @@ export const MISION_2: Mision = {
   titulo: 'La cuarta cuerda',
   banda: 'exiliado',
   siguiente: 'La noche del show en Teatro Vorterix. Muy pronto.',
-  // PENDIENTE: el fragmento de unos 10 segundos del tema de Exiliado. Por ahora, el placeholder silencioso.
-  musicaShow: { tema: 'exiliado-pendiente', desde: 0, duracion: 10, volumen: 0.6 },
+  // En el show suenan 10 segundos del tema desde que entra la banda con todo (0:30; antes hay una intro bajita).
+  musicaShow: { tema: 'exiliado-el-hombre-en-el-cuadro', desde: 30, duracion: 10, volumen: 0.6 },
 
   reglas: [
     // Paso 9 y 10: darle las cuerdas a Jota (o hablarle teniéndolas). Las recompensas se dan
@@ -29,7 +29,7 @@ export const MISION_2: Mision = {
       efectos: [
         { quitar: 'cuerdas-bajo' },
         { marcar: 'mision2-completa' },
-        { recompensa: 'tema:exiliado-pendiente' },
+        { recompensa: 'tema:exiliado-el-hombre-en-el-cuadro' },
         { recompensa: 'figurita:jota' },
       ],
       secuencia: 'show',
@@ -42,7 +42,7 @@ export const MISION_2: Mision = {
       efectos: [
         { quitar: 'cuerdas-bajo' },
         { marcar: 'mision2-completa' },
-        { recompensa: 'tema:exiliado-pendiente' },
+        { recompensa: 'tema:exiliado-el-hombre-en-el-cuadro' },
         { recompensa: 'figurita:jota' },
       ],
       secuencia: 'show',
